@@ -1,0 +1,51 @@
+plugins {
+    id 'war'
+    id 'idea'
+    id 'org.gretty' version '2.2.0'
+}
+
+group 'com.medisons.dbm'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+
+    /**
+     * JUnit Jupiter as a testing framework.
+     */
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
+
+    /**
+     * JUnit Jupiter parameter configuration.
+     */
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.2.0'
+
+    /**
+     * JUnit Jupiter testing engine.
+     */
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.2.0'
+
+    /**
+     * JUnit jupiter with mockito.
+     */
+    testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.19.0'
+
+    /**
+     * Mockito for mocking.
+     */
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.19.0'
+
+    providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+
+    compile group: 'com.graphql-java', name: 'graphql-java', version: '11.0'
+    compile group: 'com.graphql-java-kickstart', name: 'graphql-java-tools', version: '5.3.5'
+    compile group: 'com.graphql-java-kickstart', name: 'graphql-java-servlet', version: '7.0.0'
+
+    compile group: 'org.mongodb', name: 'mongodb-driver', version: '3.4.2'
+}

@@ -1,0 +1,19 @@
+type SignalData {
+    name: String!
+    frequency: Float!
+    timestamp: String!
+    dataPoints: [Float!]!
+}
+
+type Query {
+    allSignalData : [SignalData]
+}
+
+type Mutation {
+    storeSignalData(name: String!, frequency: Float!, timestamp: String!, dataPoints: [Float!]!): SignalData
+}
+
+schema {
+    query: Query
+    mutation: Mutation
+}
