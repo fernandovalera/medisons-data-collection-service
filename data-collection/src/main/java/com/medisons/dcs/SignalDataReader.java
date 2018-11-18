@@ -2,9 +2,9 @@ package com.medisons.dcs;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -109,8 +109,8 @@ public class SignalDataReader {
 
         // Convert data points to List of Doubles
         List<Double> dataPoints = new ArrayList<Double>();
-        byte[] rawDataPoints = Arrays.copyOfRange(dataBuffer, 63, endOfPacket - 5);
-        DoubleBuffer doubleBuffer = ByteBuffer.wrap(rawDataPoints).order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
+        byte[] rawDataPoints = Arrays.copyOfRange(dataBuffer, 63, endOfPacket - 4);
+        DoubleBuffer doubleBuffer = ByteBuffer.wrap(rawDataPoints).asDoubleBuffer();
         while (doubleBuffer.hasRemaining())
         {
             dataPoints.add(doubleBuffer.get());
@@ -155,25 +155,27 @@ public class SignalDataReader {
 
     public static void main(String[] args)
     {
-        while (true) {
-            try {
-                Socket dataInSocket = new Socket("", DATA_IN_PORT);
+        try {
+            ServerSocket listener = new ServerSocket(DATA_IN_PORT);
+            Socket dataInSocket = listener.accept();
+            SignalDataReader dataReader = new SignalDataReader(dataInSocket.getInputStream());
 
-                SignalDataReader dataReader = new SignalDataReader(dataInSocket.getInputStream());
+            while (true) {
+                try {
+                    LOG.info(dataReader.getDataPacket().toString());
+                } catch (IOException e) {
+                    LOG.info("Socket is not sending data, waiting ...");
+                }
 
-                DataDistributor dataDistributor = new DataDistributor();
-
-                LOG.info(dataReader.getDataPacket().toString());
-            } catch (IOException e) {
-                LOG.info("Socket is not sending data, waiting ...");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-
-            try {
-                Thread.sleep(1000);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        } catch (IOException e) {
+            LOG.info("Error establishing connection.");
+            e.printStackTrace();
         }
     }
 }
