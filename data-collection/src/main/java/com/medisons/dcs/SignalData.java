@@ -31,8 +31,25 @@ public class SignalData {
         return mDataPoints;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SignalData) {
+            SignalData that = (SignalData) obj;
+            return
+                    this.getSignalName().equals(that.getSignalName()) &&
+                    this.getSignalFrequency().equals(that.getSignalFrequency()) &&
+                    this.getSignalTimestamp().equals(that.getSignalTimestamp()) &&
+                    this.getDataPoints().equals(that.getDataPoints());
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
     public String toString() {
-        return getSignalName() + ", " +
+        return
+                getSignalName() + ", " +
                 getSignalFrequency() + ", " +
                 getSignalTimestamp() + ", " +
                 getDataPoints();
