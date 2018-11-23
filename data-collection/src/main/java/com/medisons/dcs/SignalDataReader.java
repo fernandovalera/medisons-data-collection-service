@@ -35,7 +35,7 @@ public class SignalDataReader {
      *
      * @param inputStream InputStream for data.
      */
-    SignalDataReader(InputStream inputStream) {
+    public SignalDataReader(InputStream inputStream) {
         dataInputStream = inputStream;
     }
 
@@ -103,7 +103,7 @@ public class SignalDataReader {
         // Parse signal name, frequency, and timestamp
         StringBuilder dataString = new StringBuilder(new String(
                 Arrays.copyOfRange(dataBuffer, 0, 63),
-                StandardCharsets.US_ASCII
+                StandardCharsets.UTF_8
         ));
 
         String signalName = dataString.substring(0, FIELD_SIGNAL_NAME_LENGTH).trim();
@@ -160,6 +160,7 @@ public class SignalDataReader {
 
                 DataDistributor dataDistributor = new DataDistributor();
 
+                // Instead of sending data packets to the unfinished DataDistributor, log to console.
                 while (true) {
                     LOG.info(dataReader.getDataPackets().toString());
                 }
