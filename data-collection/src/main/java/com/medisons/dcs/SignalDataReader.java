@@ -1,5 +1,6 @@
 package com.medisons.dcs;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -7,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,14 +30,10 @@ public class SignalDataReader {
 
     private InputStream dataInputStream;
 
-    private byte[] dataBuffer = new byte[DATA_BUFFER_SIZE];
-    private int dataBufferOffset = 0;
-
     /**
      * Contructs new SignalDataReader.
      *
      * @param inputStream InputStream for data.
-     * @throws IOException When a socket cannot be opened.
      */
     public SignalDataReader(InputStream inputStream) {
         dataInputStream = inputStream;
@@ -49,24 +47,26 @@ public class SignalDataReader {
      * -2 if the buffer is full.
      * @throws IOException When there was an exception reading from InputStream.
      */
-    protected int readToEndOfDataPacket() throws IOException {
+    private int readToEndOfDataPacket(byte[] dataBuffer) throws IOException {
         boolean foundPacket = false;
         int endOfPacket = 0;
         int terminationCharCount = 0;
 
+        if (dataInputStream.markSupported()) {
+            dataInputStream.mark(dataBuffer.length);
+        }
+
         // Read into the buffer until a data packet is found or the buffer is full.
         while (!foundPacket && endOfPacket < dataBuffer.length) {
-            int bytesRead = dataInputStream.read(dataBuffer, dataBufferOffset,
-                    dataBuffer.length - dataBufferOffset);
+            int bytesRead = dataInputStream.read(dataBuffer, 0, dataBuffer.length);
 
+            // If nothing was read, and nothing found in the dataBuffer, exit.
             if (bytesRead == -1) {
                 return -1;
             }
 
-            dataBufferOffset += bytesRead;
-
             // Read through buffer up to the amount of bytes read to find the termination string.
-            while (endOfPacket < dataBufferOffset)
+            while (endOfPacket < dataBuffer.length)
             {
                 if ((char) dataBuffer[endOfPacket] == PACKET_TERMINATION_STR.charAt(terminationCharCount))
                 {
@@ -74,6 +74,7 @@ public class SignalDataReader {
                     if (terminationCharCount == PACKET_TERMINATION_STR.length())
                     {
                         foundPacket = true;
+                        endOfPacket +=1;
                         break;
                     }
                 }
@@ -84,19 +85,25 @@ public class SignalDataReader {
             }
         }
 
+        if (dataInputStream.markSupported()) {
+            dataInputStream.reset();
+            dataInputStream.readNBytes(endOfPacket);
+        }
+
         return foundPacket ? endOfPacket : -2;
     }
 
     /**
      * Creates a new SignalData from data contained on dataBuffer.
+     * @param dataBuffer Byte array containing data
      * @param endOfPacket Integer index of the end of the data packet.
      * @return A new SignalData.
      */
-    protected SignalData parseSignalDataPacket(int endOfPacket) {
+    private SignalData parseSignalDataPacket(byte[] dataBuffer, int endOfPacket) {
         // Parse signal name, frequency, and timestamp
         StringBuilder dataString = new StringBuilder(new String(
                 Arrays.copyOfRange(dataBuffer, 0, 63),
-                Charset.forName("UTF-8")
+                StandardCharsets.UTF_8
         ));
 
         String signalName = dataString.substring(0, FIELD_SIGNAL_NAME_LENGTH).trim();
@@ -108,8 +115,8 @@ public class SignalDataReader {
         String signalTimestamp = dataString.substring(0, FIELD_TIMESTAMP_LENGTH).trim();
 
         // Convert data points to List of Doubles
-        List<Double> dataPoints = new ArrayList<Double>();
-        byte[] rawDataPoints = Arrays.copyOfRange(dataBuffer, 63, endOfPacket - 5);
+        List<Double> dataPoints = new ArrayList<>();
+        byte[] rawDataPoints = Arrays.copyOfRange(dataBuffer, 63, endOfPacket - 4);
         DoubleBuffer doubleBuffer = ByteBuffer.wrap(rawDataPoints).order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
         while (doubleBuffer.hasRemaining())
         {
@@ -120,37 +127,27 @@ public class SignalDataReader {
     }
 
     /**
-     * Copies bytes read over the end of the last packet to the start of the byte array and moves dataBufferOffset to
-     * end of bytes read over.
+     * Retrieves one or more data packets. Blocks until at least one data packet is retrieved.
      *
-     * @param endOfPacket Integer index of the end of the data packet.
+     * @return List of data packets.
+     * @throws IOException When end of stream is reached without reading to the end of a packet.
      */
-    protected void resetDataBuffer(int endOfPacket) {
-        int readBytesOver =  dataBufferOffset - endOfPacket - 1;
+    List<SignalData> getDataPackets() throws IOException {
+        List<SignalData> dataPackets = new ArrayList<>();
+        while (dataInputStream.available() > 0 || dataPackets.size() == 0) {
+            byte[] dataBuffer = new byte[DATA_BUFFER_SIZE];
+            int endOfPacket = readToEndOfDataPacket(dataBuffer);
 
-        if (readBytesOver > 0) {
-            LOG.info(String.format("Read %d bytes over the end of the last packet.", readBytesOver));
+            if (endOfPacket < 0) {
+                throw new IOException();
+            }
+
+            SignalData dataPacket = parseSignalDataPacket(dataBuffer, endOfPacket);
+
+            dataPackets.add(dataPacket);
         }
 
-        for (int i = 0; i < readBytesOver; i++) {
-            dataBuffer[i] = dataBuffer[endOfPacket + 5];
-        }
-
-        dataBufferOffset = readBytesOver;
-    }
-
-    public SignalData getDataPacket() throws IOException {
-        int endOfPacket = readToEndOfDataPacket();
-
-        if (endOfPacket < 0) {
-            throw new IOException();
-        }
-
-        SignalData dataPacket = parseSignalDataPacket(endOfPacket);
-
-        resetDataBuffer(endOfPacket);
-
-        return dataPacket;
+        return dataPackets;
     }
 
     public static void main(String[] args)
@@ -159,11 +156,14 @@ public class SignalDataReader {
             try {
                 Socket dataInSocket = new Socket("", DATA_IN_PORT);
 
-                SignalDataReader dataReader = new SignalDataReader(dataInSocket.getInputStream());
+                SignalDataReader dataReader = new SignalDataReader(new BufferedInputStream(dataInSocket.getInputStream()));
 
                 DataDistributor dataDistributor = new DataDistributor();
 
-                LOG.info(dataReader.getDataPacket().toString());
+                // Instead of sending data packets to the unfinished DataDistributor, log to console.
+                while (true) {
+                    LOG.info(dataReader.getDataPackets().toString());
+                }
             } catch (IOException e) {
                 LOG.info("Socket is not sending data, waiting ...");
             }
