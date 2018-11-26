@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS signal_info (
+  name       VARCHAR(32) NOT NULL PRIMARY KEY,
+  frequency  DOUBLE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS spo2 (
+  timestampMilli    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  value             DOUBLE NOT NULL
+);
