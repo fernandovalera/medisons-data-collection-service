@@ -3,11 +3,12 @@ package com.medisons.dcs;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.http.HttpClient;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,17 +153,27 @@ public class SignalDataReader {
 
     public static void main(String[] args)
     {
+        ServerSocket listener = null;
+        try {
+            listener = new ServerSocket(DATA_IN_PORT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         while (true) {
             try {
-                Socket dataInSocket = new Socket("", DATA_IN_PORT);
+                Socket dataInSocket = listener.accept();
 
                 SignalDataReader dataReader = new SignalDataReader(new BufferedInputStream(dataInSocket.getInputStream()));
 
-                DataDistributor dataDistributor = new DataDistributor();
+                DataDistributor dataDistributor = new DataDistributor(HttpClient.newHttpClient());
 
                 // Instead of sending data packets to the unfinished DataDistributor, log to console.
                 while (true) {
-                    LOG.info(dataReader.getDataPackets().toString());
+                    List<SignalData> signalDataList = dataReader.getDataPackets();
+                    for (SignalData signalData : signalDataList) {
+                        dataDistributor.storeSignalData(signalData);
+                    }
                 }
             } catch (IOException e) {
                 LOG.info("Socket is not sending data, waiting ...");
