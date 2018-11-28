@@ -11,7 +11,7 @@ type SignalDataRow {
 }
 
 type Query {
-    allSignalData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalData]
+    allSignalData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : SignalData
     signalDataRow(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRow]
 }
 

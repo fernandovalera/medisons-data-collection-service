@@ -15,7 +15,7 @@ public class SignalDataRepository {
 
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
-    private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestampMilli, value FROM %s WHERE timestampMilli BETWEEN ? AND ?";
+    private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestampMilli, value FROM %s WHERE timestampMilli BETWEEN ? AND ? ORDER BY timestampMilli";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
 
     private final Connection signalDataConnection;
@@ -43,15 +43,15 @@ public class SignalDataRepository {
             PreparedStatement statement = this.signalDataConnection.prepareStatement(STORE_SIGNAL_INFO_ENTRY_QUERY);
             statement.setString(1, signalName);
             statement.setDouble(2, frequency);
-            statement.executeQuery();
+            statement.executeUpdate();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public List<SignalData> getAllSignalData(String signalName, long from, long to) {
-        List<SignalData> allSignalData = new ArrayList<>();
+    public SignalData getAllSignalData(String signalName, long from, long to) {
+        SignalData signalData = null;
 
         try {
             PreparedStatement preparedStatement = signalDataConnection.prepareStatement(GET_SIGNAL_FREQUENCY_QUERY);
@@ -67,7 +67,7 @@ public class SignalDataRepository {
                 dataPointsPreparedStatement.setLong(2, to);
                 ResultSet dataPointsResultSet = dataPointsPreparedStatement.executeQuery();
 
-                allSignalData.add(signalData(signalName, frequency, dataPointsResultSet));
+                signalData = newSignalData(signalName, frequency, dataPointsResultSet);
             } else {
                 // TODO: Should notify client that signal name was not recognized.
             }
@@ -75,7 +75,7 @@ public class SignalDataRepository {
         catch (SQLException e) {
             e.printStackTrace();
         }
-        return allSignalData;
+        return signalData;
     }
 
     public List<SignalDataRow> getAllSignalDataRow(String signalName, long from, long to) {
@@ -89,7 +89,7 @@ public class SignalDataRepository {
             ResultSet rs = preparedStatement.executeQuery();
 
             while (rs.next()) {
-                allSignalDataRow.add(signalDataRow(rs));
+                allSignalDataRow.add(newSignalDataRow(rs));
             }
         }
         catch (SQLException e) {
@@ -135,14 +135,14 @@ public class SignalDataRepository {
         try {
             Statement statement = signalDataConnection.createStatement();
 
-            statement.execute(query);
+            statement.executeUpdate(query);
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private SignalData signalData(String signalName, double frequency, ResultSet rs) throws SQLException {
+    private SignalData newSignalData(String signalName, double frequency, ResultSet rs) throws SQLException {
         long timeInMS = -1;
         List<Double> dataPoints = new ArrayList<>();
 
@@ -158,7 +158,7 @@ public class SignalDataRepository {
         return new SignalData(signalName, frequency, timestamp, dataPoints);
     }
 
-    private SignalDataRow signalDataRow(ResultSet rs) throws SQLException {
+    private SignalDataRow newSignalDataRow(ResultSet rs) throws SQLException {
         return new SignalDataRow(rs.getLong(1), rs.getDouble(2));
     }
 }

@@ -12,7 +12,7 @@ public class Query implements GraphQLQueryResolver {
         this.signalDataRepository = signalDataRepository;
     }
 
-    public List<SignalData> allSignalData(String signalName, long from, long to) {
+    public SignalData allSignalData(String signalName, long from, long to) {
         return signalDataRepository.getAllSignalData(signalName, from, to);
     }
 
