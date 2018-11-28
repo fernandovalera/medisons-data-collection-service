@@ -12,10 +12,10 @@ public class Mutation implements GraphQLMutationResolver {
         this.signalDataRepository = signalDataRepository;
     }
 
-    public SignalData storeSignalData(String name, Double frequency, String timestamp,
+    public SignalData storeSignalData(String signalName, Double frequency, String timestamp,
                                       List<Double> dataPoints) {
-        SignalData newSignalData = new SignalData(name, frequency, timestamp, dataPoints);
-        signalDataRepository.saveSignalData(newSignalData);
+        SignalData newSignalData = new SignalData(signalName, frequency, timestamp, dataPoints);
+        signalDataRepository.saveSignalData(signalName, newSignalData);
         return newSignalData;
     }
 }
