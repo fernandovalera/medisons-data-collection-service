@@ -19,4 +19,8 @@ public class Query implements GraphQLQueryResolver {
     public List<SignalDataRow> signalDataRow(String signalName, long from, long to) {
         return signalDataRepository.getAllSignalDataRow(signalName, from, to);
     }
+
+    public List<SignalScoreRow> signalScoreData(String signalName, long from, long to) {
+        return signalDataRepository.getSignalScoreData(signalName, from, to);
+    }
 }

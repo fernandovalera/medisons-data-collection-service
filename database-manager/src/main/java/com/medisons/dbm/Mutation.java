@@ -18,4 +18,10 @@ public class Mutation implements GraphQLMutationResolver {
         signalDataRepository.saveSignalData(signalName, newSignalData);
         return newSignalData;
     }
+
+    public SignalScoreRow storeSignalScore(String signalName, long from, long to, double value) {
+        SignalScoreRow newSignalScoreRow = new SignalScoreRow(from, to, value);
+        signalDataRepository.saveSignalScore(signalName, newSignalScoreRow);
+        return newSignalScoreRow;
+    }
 }

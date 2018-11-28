@@ -7,3 +7,10 @@ CREATE TABLE IF NOT EXISTS spo2 (
   timestampMilli    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   value             DOUBLE NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS spo2_score (
+  timestampFrom     BIGINT UNSIGNED NOT NULL,
+  timestampTo       BIGINT UNSIGNED NOT NULL,
+  value             DOUBLE NOT NULL,
+  CONSTRAINT PK_spo2_score PRIMARY KEY (timestampFrom, timestampTo)
+);
