@@ -168,7 +168,8 @@ public class SignalDataReader {
 
                 DataDistributor dataDistributor = new DataDistributor(HttpClient.newHttpClient());
 
-                // Instead of sending data packets to the unfinished DataDistributor, log to console.
+                LOG.info("Connected to sensor, waiting for/receiving data.");
+
                 while (true) {
                     List<SignalData> signalDataList = dataReader.getDataPackets();
                     for (SignalData signalData : signalDataList) {
@@ -176,7 +177,7 @@ public class SignalDataReader {
                     }
                 }
             } catch (IOException e) {
-                LOG.info("Socket is not sending data, waiting ...");
+                LOG.info("Lost connection with sensor, will attempt to reconnect.");
             }
 
             try {
