@@ -1,22 +1,32 @@
 package com.medisons.dcs;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.logging.Logger;
 
 
 public class DataDistributor {
 
-    private HttpClient mClient;
+    private static final Logger LOG = Logger.getLogger(DataDistributor.class.getName());
 
-    public DataDistributor() {
-        mClient = HttpClient.newHttpClient();
+    private static final String DBM_URI = "http://127.0.0.1:8080/database-manager/graphql";
+
+    private HttpClient client;
+
+    public DataDistributor(HttpClient client) {
+        this.client = client;
     }
 
-    public void storeDataPoints(SignalData signalData) {
+    public int storeSignalData(SignalData signalData) {
+
         String body = String.format(
-                "{\n storeDataPoint(signalName: %s, signalFrequency: %s, signalTimestamp: %s, dataPoints: %s)\n}",
+                    "{\n" +
+                    "  \"query\": \"mutation storeSignalData($name: String!, $frequency: Float!, $timestamp: String!, $dataPoints: [Float!]!) { storeSignalData(name: $name, frequency: $frequency, timestamp: $timestamp, dataPoints: $dataPoints) { name, frequency, timestamp, dataPoints } }\",\n" +
+                    "  \"variables\": {\"name\": \"%s\", \"frequency\": %s, \"timestamp\": \"%s\", \"dataPoints\": %s }\n" +
+                    "}",
                 signalData.getSignalName(),
                 signalData.getSignalFrequency(),
                 signalData.getSignalTimestamp(),
@@ -24,15 +34,20 @@ public class DataDistributor {
         );
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1/graphql"))
+                .uri(URI.create(DBM_URI))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        mClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenAccept(System.out::println)
-                .join();
+        try {
+            this.client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return 0;
+        } catch (IOException | InterruptedException e) {
+            LOG.warning("Failed to store signal data, unexpected error.");
+
+            return -1;
+        }
     }
 }
