@@ -5,8 +5,14 @@ type SignalData {
     dataPoints: [Float!]!
 }
 
+type SignalDataRow {
+    timestamp: Long!
+    value: Float!
+}
+
 type Query {
-    allSignalData : [SignalData]
+    allSignalData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : SignalData
+    signalDataRow(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRow]
 }
 
 type Mutation {

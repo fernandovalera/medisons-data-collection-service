@@ -48,4 +48,17 @@ class SignalDataTest {
     void getDataPoints_givenDataPoints_returnDataPoints() {
         assertEquals(DATA_POINTS, signalData.getDataPoints());
     }
+
+    @Test
+    void equals_givenPOJO_returnFalse() {
+        assertNotEquals(signalData, new Object());
+    }
+
+    @Test
+    void toString_returnAppropriateString() {
+        assertEquals(
+                SIGNAL_NAME + ", " + SIGNAL_FREQUENCY + ", " + SIGNAL_TIMESTAMP + ", " + DATA_POINTS,
+                signalData.toString()
+        );
+    }
 }

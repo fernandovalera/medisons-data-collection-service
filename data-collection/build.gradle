@@ -11,8 +11,7 @@ allprojects {
     apply plugin: 'maven'
     apply plugin: 'application'
 
-    mainClassName = 'com.medisons.dcs.SignalDataReader'
-
+    mainClassName =  System.getProperty("mainClass", 'com.medisons.dcs.SignalDataReader')
     sourceCompatibility = 1.11
     targetCompatibility = 1.11
 
