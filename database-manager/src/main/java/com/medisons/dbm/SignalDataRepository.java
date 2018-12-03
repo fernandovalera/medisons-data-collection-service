@@ -119,8 +119,8 @@ public class SignalDataRepository {
             int step = 0;
             long timeInMS = calendar.getTimeInMillis();
             for (Double dataPoint : signalData.getDataPoints()) {
-                dataPointsString.append("(").append(timeInMS).append(",").append(dataPoint).append("),");
                 timeInMS = timeInMS + (long) (step / frequency * 1000);
+                dataPointsString.append("(").append(timeInMS).append(",").append(dataPoint).append("),");
                 step++;
             }
 

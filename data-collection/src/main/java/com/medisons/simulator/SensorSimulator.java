@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,12 +23,12 @@ public class SensorSimulator {
     private static final String DCS_HOST = "localhost";
     private static final int DCS_PORT = 2057;
 
-    private static final String DATA_FILE = "resources/Sample_Patient_O2_Data_Small_ASCII.txt";
+    private static final String DATA_FILE = "resources/Sample_Patient_O2_Data_ASCII.txt";
 
-    private static final String SIGNAL_NAME = "PulseOximetry                 "; //signal name with padding to ensure 30 chars
-    private static final String FREQUENCY = "1.000000  ";                       //frequency with padding to ensure 10 chars
+    private static final String SIGNAL_NAME = "spo2                          "; //signal name with padding to ensure 30 chars
+    private static final String FREQUENCY = "125       ";                       //frequency with padding to ensure 10 chars
     private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss.SSS";        //MediCollector date format
-    private static final int MAX_DATAPOINTS_PER_PACKET = 5;                    //max number of datapoints that can be sent in a single packet
+    private static final int DATAPOINTS_PER_PACKET = 125;                       //max number of datapoints that can be sent in a single packet
     private static final String TERMINATION_CHAR = "|||||";
 
     private ArrayList<Double> o2Readings;
@@ -37,11 +38,6 @@ public class SensorSimulator {
     {
         o2Readings = new ArrayList<>();
         o2ReadingsIndex = 0;
-    }
-
-    public List<Double> getReadings()
-    {
-        return o2Readings;
     }
 
     /**
@@ -70,32 +66,14 @@ public class SensorSimulator {
     }
 
     /**
-     * Method to get random number of data points to include in a packet.
-     * @return number of data points.
-     */
-    protected int getRandomNumberOfDataPoints()
-    {
-        Random random = new Random();
-        while (true)
-        {
-            int numDataPoints = random.nextInt(MAX_DATAPOINTS_PER_PACKET);
-            if (numDataPoints > 0)
-            {
-                return numDataPoints;
-            }
-        }
-    }
-
-    /**
-     * Gets a random amount of readings between 1 and MAX_DATAPOINTS_PER_PACKET
-     * to include in the next packet, and returns them as a list.
+     * Gets the readings to include in the next packet, and returns them as a list.
      * If the end of the readings list is reached, an empty list is returned.
      * @return list of readings to include in the next packet.
      */
     protected ArrayList<Double> getReadingsForNextPacket()
     {
         ArrayList<Double> dataPoints = new ArrayList<>();
-        int numDataPoints = getRandomNumberOfDataPoints();
+        int numDataPoints = DATAPOINTS_PER_PACKET;
 
         if (o2ReadingsIndex == o2Readings.size())
         {
@@ -126,7 +104,7 @@ public class SensorSimulator {
         for (int i = 0; i < dataPoints.size(); i++)
         {
             byte[] dataPoint = new byte[8];
-            ByteBuffer.wrap(dataPoint).putDouble(dataPoints.get(i));
+            ByteBuffer.wrap(dataPoint).order(ByteOrder.LITTLE_ENDIAN).putDouble(dataPoints.get(i));
             System.arraycopy(dataPoint, 0, dataPointBytes, byteIndex, 8);
             byteIndex += 8;
         }
@@ -138,14 +116,14 @@ public class SensorSimulator {
      * in https://www.medicollector.com/uploads/3/1/0/6/31064385/medicollector_bedside_-_tcp_streaming_interface.pdf
      * @return
      */
-    protected byte[] preparePacket()
+    protected byte[] preparePacket(long tZeroMillis)
     {
         StringBuilder message = new StringBuilder();
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
         message.append(SIGNAL_NAME);
         message.append(FREQUENCY);
-        String tZero = dateFormat.format(new Date());
+        String tZero = dateFormat.format(new Date(tZeroMillis));
         message.append(tZero);
         byte[] messageBytes = message.toString().getBytes(StandardCharsets.UTF_8);
 
@@ -176,14 +154,13 @@ public class SensorSimulator {
         sensorSimulator.getReadingsFromFile();
         int packetsSent = 0;
 
-        try
+        try (Socket socket = new Socket(DCS_HOST, DCS_PORT);
+             DataOutputStream out = new DataOutputStream(socket.getOutputStream()))
         {
-            Socket socket = new Socket(DCS_HOST, DCS_PORT);
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-
+            long tZeroMillis = new Date().toInstant().toEpochMilli();
             while (true)
             {
-                byte[] packet = sensorSimulator.preparePacket();
+                byte[] packet = sensorSimulator.preparePacket(tZeroMillis);
                 if (packet == null)
                 {
                     LOG.info("Finished sending packets. Sent " + packetsSent + " packets.");
@@ -192,6 +169,7 @@ public class SensorSimulator {
                 out.write(packet, 0, packet.length);
                 out.flush();
                 packetsSent++;
+                tZeroMillis += 1000;
 
                 //send packet every second
                 try
@@ -208,6 +186,8 @@ public class SensorSimulator {
         {
             LOG.info("Error: " + e.getMessage());
         }
+
+        LOG.info("Finished sending packets, connection closed.");
     }
 
 }
