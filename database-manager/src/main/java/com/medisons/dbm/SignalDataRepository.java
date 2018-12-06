@@ -15,8 +15,16 @@ public class SignalDataRepository {
 
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
+    private static final String STORE_SIGNAL_SCORE_QUERY = "REPLACE INTO %s_score VALUE (?, ?, ?)";
     private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestampMilli, value FROM %s WHERE timestampMilli BETWEEN ? AND ? ORDER BY timestampMilli";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
+    private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
+            + " ORDER BY timestampFrom";
+
+    private static final String DATA_TIMESTAMP_COLUMN = "timestampMilli";
+    private static final String VALUE_COLUMN = "value";
+    private static final String SCORE_FROM_COLUMN = "timestampFrom";
+    private static final String SCORE_TO_COLUM = "timestampTo";
 
     private final Connection signalDataConnection;
 
@@ -116,12 +124,10 @@ public class SignalDataRepository {
             Date date = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").parse(signalData.getTimestamp());
             calendar.setTime(date);
 
-            int step = 0;
             long timeInMS = calendar.getTimeInMillis();
             for (Double dataPoint : signalData.getDataPoints()) {
-                timeInMS = timeInMS + (long) (step / frequency * 1000);
-                dataPointsString.append("(").append(timeInMS).append(",").append(dataPoint).append("),");
-                step++;
+                dataPointsString.append(String.format("(%s,%s),", timeInMS, dataPoint));
+                timeInMS = timeInMS + (long) (1000 / frequency);
             }
 
             // Remove last comma
@@ -136,6 +142,41 @@ public class SignalDataRepository {
             Statement statement = signalDataConnection.createStatement();
 
             statement.executeUpdate(query);
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<SignalScoreRow> getSignalScoreData (String signalName, long from, long to) {
+        List<SignalScoreRow> signalScoreData = new ArrayList<>();
+
+        try {
+            String query = String.format(GET_SIGNAL_SCORE_QUERY, signalName);
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
+            preparedStatement.setLong(1, from);
+            preparedStatement.setLong(2, to);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+                signalScoreData.add(newSignalScoreRow(rs));
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return signalScoreData;
+    }
+
+    public void saveSignalScore(String signalName, SignalScoreRow signalScoreRow) {
+        try {
+            String query = String.format(STORE_SIGNAL_SCORE_QUERY, signalName);
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
+            preparedStatement.setLong(1, signalScoreRow.getTimestampFrom());
+            preparedStatement.setLong(2, signalScoreRow.getTimestampTo());
+            preparedStatement.setDouble(3, signalScoreRow.getValue());
+
+            preparedStatement.executeUpdate();
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -159,6 +200,11 @@ public class SignalDataRepository {
     }
 
     private SignalDataRow newSignalDataRow(ResultSet rs) throws SQLException {
-        return new SignalDataRow(rs.getLong(1), rs.getDouble(2));
+        return new SignalDataRow(rs.getLong(DATA_TIMESTAMP_COLUMN), rs.getDouble(VALUE_COLUMN));
+    }
+
+    private SignalScoreRow newSignalScoreRow(ResultSet rs) throws SQLException {
+        return new SignalScoreRow(rs.getLong(SCORE_FROM_COLUMN), rs.getLong(SCORE_TO_COLUM),
+                rs.getDouble(VALUE_COLUMN));
     }
 }
