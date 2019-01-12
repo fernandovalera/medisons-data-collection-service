@@ -1,4 +1,4 @@
-package com.medisons.dcs;
+package com.medisons.dbm;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,35 +29,22 @@ class SignalDataTest {
     }
 
     @Test
-    void getSignalName_givenSignalName_returnSignalName() {
-        assertEquals(SIGNAL_NAME, signalData.getSignalName());
+    void getName_givenSignalName_returnName() {
+        assertEquals(SIGNAL_NAME, signalData.getName());
     }
 
     @Test
-    void getSignalFrequency_givenSignalFrequency_returnSignalFrequency() {
-        assertEquals(SIGNAL_FREQUENCY, signalData.getSignalFrequency());
+    void getFrequency_givenInitializedObject_returnFrequency() {
+        assertEquals(SIGNAL_FREQUENCY, signalData.getFrequency());
     }
 
     @Test
-    void getSignalTimestamp_givenSignalTimestamp_returnSignalTimestamp() {
-        assertEquals(SIGNAL_TIMESTAMP, signalData.getSignalTimestamp());
+    void getTimestamp_givenInitializedObject_returnTimestamp() {
+        assertEquals(SIGNAL_TIMESTAMP, signalData.getTimestamp());
     }
 
     @Test
-    void getDataPoints_givenDataPoints_returnDataPoints() {
+    void getDataPoints_givenInitializedObject_returnDataPoints() {
         assertEquals(DATA_POINTS, signalData.getDataPoints());
-    }
-
-    @Test
-    void equals_givenPOJO_returnFalse() {
-        assertNotEquals(signalData, new Object());
-    }
-
-    @Test
-    void toString_returnAppropriateString() {
-        assertEquals(
-                SIGNAL_NAME + ", " + SIGNAL_FREQUENCY + ", " + SIGNAL_TIMESTAMP + ", " + DATA_POINTS,
-                signalData.toString()
-        );
     }
 }

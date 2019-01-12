@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public class ConnectionManager {
+class ConnectionManager {
 
     private static final Logger LOG = Logger.getLogger(ConnectionManager.class.getName());
 
@@ -16,7 +16,7 @@ public class ConnectionManager {
 
     private static Connection conn;
 
-    public static Connection getConnection() {
+    static Connection getConnection() {
         try {
             Properties connectionProperties = new Properties();
             connectionProperties.put("serverTimezone", "UTC");

@@ -1,16 +1,16 @@
 package com.medisons.dbm;
 
 public class SignalDataRow {
-    private final long timestampMS;
+    private final long timestampMilli;
     private final double value;
 
-    public SignalDataRow(long timestampMS, double value) {
-        this.timestampMS = timestampMS;
+    public SignalDataRow(long timestampMilli, double value) {
+        this.timestampMilli = timestampMilli;
         this.value = value;
     }
 
-    public long getTimestamp() {
-        return timestampMS;
+    public long getTimestampMilli() {
+        return timestampMilli;
     }
 
     public double getValue() {

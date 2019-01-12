@@ -46,18 +46,6 @@ public class SignalDataRepository {
         return false;
     }
 
-    private void createSignalInfoEntry(String signalName, double frequency) {
-        try {
-            PreparedStatement statement = this.signalDataConnection.prepareStatement(STORE_SIGNAL_INFO_ENTRY_QUERY);
-            statement.setString(1, signalName);
-            statement.setDouble(2, frequency);
-            statement.executeUpdate();
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public SignalData getAllSignalData(String signalName, long from, long to) {
         SignalData signalData = null;
 
@@ -115,10 +103,20 @@ public class SignalDataRepository {
             return;
         }
 
+
+        // Create and execute signal info update query
         double frequency = signalData.getFrequency();
+        try {
+            PreparedStatement statement = this.signalDataConnection.prepareStatement(STORE_SIGNAL_INFO_ENTRY_QUERY);
+            statement.setString(1, signalName);
+            statement.setDouble(2, frequency);
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-        createSignalInfoEntry(signalName, frequency);
-
+        // Convert data points list to a comma separated string
         try {
             Calendar calendar = Calendar.getInstance();
             Date date = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").parse(signalData.getTimestamp());
@@ -137,6 +135,7 @@ public class SignalDataRepository {
             e.printStackTrace();
         }
 
+        // Create and execute signal data update query
         String query = String.format(STORE_SIGNAL_DATA_QUERY, signalName, dataPointsString);
         try {
             Statement statement = signalDataConnection.createStatement();
