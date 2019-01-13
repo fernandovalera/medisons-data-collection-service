@@ -48,4 +48,7 @@ dependencies {
     compile group: 'com.graphql-java-kickstart', name: 'graphql-java-servlet', version: '7.0.0'
 
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+
+    testImplementation group: 'org.testcontainers', name: 'mysql', version: '1.10.5'
+    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.10.5'
 }

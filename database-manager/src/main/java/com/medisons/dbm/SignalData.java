@@ -31,10 +31,25 @@ public class SignalData {
         return dataPoints;
     }
 
+    @Override
     public String toString() {
         return getName() + ", " +
                 getFrequency() + ", " +
                 getTimestamp() + ", " +
                 getDataPoints();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof SignalData)) {
+            return false;
+        }
+        else {
+            SignalData other = (SignalData) object;
+
+            return other.getName().equals(name) && other.getFrequency().equals(frequency)
+                    && other.getTimestamp().equals(timestamp) && other.getDataPoints().equals(dataPoints);
+        }
+
     }
 }

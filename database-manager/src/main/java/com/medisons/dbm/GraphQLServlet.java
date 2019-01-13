@@ -14,8 +14,10 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
 
     private static final SignalDataRepository signalDataRepository;
 
+    private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/signals";
+
     static {
-        signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection());
+        signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection(CONNECTION_URL));
     }
 
     public GraphQLServlet() {
