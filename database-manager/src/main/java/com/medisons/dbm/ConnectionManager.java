@@ -13,9 +13,9 @@ class ConnectionManager {
     private static final String USERNAME = "root";
     private static final String PASSWORD = "";
 
-    private static Connection conn;
+    static Connection getConnection(String url)  {
+        Connection conn = null;
 
-    static Connection getConnection(String url) {
         try {
             Properties connectionProperties = new Properties();
             connectionProperties.put("serverTimezone", "UTC");
@@ -26,6 +26,7 @@ class ConnectionManager {
         } catch (SQLException e) {
             LOG.warning("Failed to create the database connection.");
         }
+
         return conn;
     }
 }

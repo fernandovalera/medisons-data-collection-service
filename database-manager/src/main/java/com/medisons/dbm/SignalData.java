@@ -32,24 +32,13 @@ public class SignalData {
     }
 
     @Override
-    public String toString() {
-        return getName() + ", " +
-                getFrequency() + ", " +
-                getTimestamp() + ", " +
-                getDataPoints();
-    }
-
-    @Override
     public boolean equals(Object object) {
         if (!(object instanceof SignalData)) {
             return false;
         }
-        else {
-            SignalData other = (SignalData) object;
 
-            return other.getName().equals(name) && other.getFrequency().equals(frequency)
-                    && other.getTimestamp().equals(timestamp) && other.getDataPoints().equals(dataPoints);
-        }
-
+        SignalData other = (SignalData) object;
+        return other.name.equals(this.name) && other.frequency.equals(this.frequency)
+                && other.timestamp.equals(this.timestamp) && other.dataPoints.equals(this.dataPoints);
     }
 }

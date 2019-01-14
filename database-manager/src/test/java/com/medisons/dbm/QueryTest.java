@@ -17,7 +17,6 @@ class QueryTest {
     private static final long SPO2_TIMESTAMP_1 = 1546300800000L;
     private static final long SPO2_TIMESTAMP_2 = 1546300801000L;
 
-    @InjectMocks
     private Query query;
 
     @Mock
