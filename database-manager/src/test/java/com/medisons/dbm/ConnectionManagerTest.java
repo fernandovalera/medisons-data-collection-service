@@ -1,29 +1,20 @@
 package com.medisons.dbm;
 
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Testcontainers
 class ConnectionManagerTest {
 
-    @Container
-    static private JdbcDatabaseContainer mysql = new MySQLContainer()
-            .withUsername("root")
-            .withPassword("")
-            .withDatabaseName("signals")
-            .withInitScript("db_setup.sql");
+    String jdbcUrl = "jdbc:mysql://localhost:3306/";
+
 
     @Test
     void getConnection_givenValidJdbcUrl_returnValidConnection() {
-        Connection connection = ConnectionManager.getConnection(mysql.getJdbcUrl());
+        Connection connection = ConnectionManager.getConnection(jdbcUrl);
         try {
             assertTrue(connection.isValid(1));
         }

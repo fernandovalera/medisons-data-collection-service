@@ -49,6 +49,5 @@ dependencies {
 
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
 
-    testImplementation group: 'org.testcontainers', name: 'mysql', version: '1.10.5'
-    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.10.5'
+    compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
 }

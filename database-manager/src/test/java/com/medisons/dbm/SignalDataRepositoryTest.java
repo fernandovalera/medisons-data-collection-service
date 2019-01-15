@@ -1,12 +1,10 @@
 package com.medisons.dbm;
 
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,7 +12,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Testcontainers
 class SignalDataRepositoryTest {
 
     private static final String SPO2_NAME = "spo2";
@@ -29,25 +26,41 @@ class SignalDataRepositoryTest {
     private static final double SPO2_VALUE_2 = 2.7D;
     private static final double SPO2_VALUE_3 = 3.4D;
 
-    static private SignalDataRepository signalDataRepository;
-    static private Connection connection;
+    private static final String URL = "jdbc:mysql://localhost:3306/";
+    private static final String DB = "test_signals";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
 
-    @Container
-    static private JdbcDatabaseContainer mysql = new MySQLContainer()
-            .withUsername("root")
-            .withPassword("")
-            .withDatabaseName("signals")
-            .withInitScript("db_setup.sql");
+    private static Flyway flyway;
+    private static Connection connection;
+
+    private SignalDataRepository signalDataRepository;
 
     @BeforeAll
     static void setUpConnection () throws SQLException {
-        connection = DriverManager.getConnection(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
-        signalDataRepository = new SignalDataRepository(connection);
+        connection = DriverManager.getConnection(URL, USER, PASSWORD);
+
+        try {
+            connection.prepareStatement(String.format("CREATE DATABASE %s", DB)).executeUpdate();
+        } catch (SQLException e) {
+            // Database already exists.
+        }
+
+        connection.prepareStatement(String.format("USE %s", DB)).executeUpdate();
+        flyway = Flyway.configure().dataSource(URL + DB, USER, PASSWORD).load();
     }
 
     @BeforeEach
-    void setUp() throws SQLException {
-        clearTables();
+    void setUp() {
+        flyway.clean();
+        flyway.migrate();
+
+        signalDataRepository = new SignalDataRepository(connection);
+    }
+
+    @AfterEach
+    void tearDown() {
+        signalDataRepository = null;
     }
 
     @Test
@@ -154,13 +167,5 @@ class SignalDataRepositoryTest {
         assertEquals(SPO2_TIMESTAMP_1, rs.getLong(1));
         assertEquals(SPO2_TIMESTAMP_1, rs.getLong(2));
         assertEquals(SPO2_VALUE_1, rs.getDouble(3));
-    }
-
-    private void clearTables() throws SQLException {
-        PreparedStatement truncateTableSpo2 = connection.prepareStatement("TRUNCATE TABLE spo2");
-        truncateTableSpo2.executeUpdate();
-
-        PreparedStatement truncateTableSignalInfo = connection.prepareStatement("TRUNCATE TABLE signal_info");
-        truncateTableSignalInfo.executeUpdate();
     }
 }
