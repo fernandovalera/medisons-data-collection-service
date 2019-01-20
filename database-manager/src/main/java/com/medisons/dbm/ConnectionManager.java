@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-class ConnectionManager {
+public class ConnectionManager {
 
     private static final Logger LOG = Logger.getLogger(ConnectionManager.class.getName());
 
