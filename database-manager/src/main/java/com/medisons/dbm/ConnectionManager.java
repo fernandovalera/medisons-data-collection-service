@@ -13,7 +13,7 @@ class ConnectionManager {
     private static final String USERNAME = "root";
     private static final String PASSWORD = "";
 
-    static Connection getConnection(String url)  {
+    static Connection getConnection(String url) throws SQLException {
         Connection conn = null;
 
         try {
@@ -25,6 +25,8 @@ class ConnectionManager {
             conn = DriverManager.getConnection(url, connectionProperties);
         } catch (SQLException e) {
             LOG.warning("Failed to create the database connection.");
+
+            throw new SQLException(e);
         }
 
         return conn;

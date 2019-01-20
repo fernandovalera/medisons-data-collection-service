@@ -5,17 +5,17 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-class ConnectionManagerTest {
+public class ConnectionManagerTest {
 
-    String jdbcUrl = "jdbc:mysql://localhost:3306/";
-
+    private String jdbcUrl = "jdbc:mysql://localhost:3306/";
 
     @Test
     void getConnection_givenValidJdbcUrl_returnValidConnection() {
-        Connection connection = ConnectionManager.getConnection(jdbcUrl);
         try {
+            Connection connection = ConnectionManager.getConnection(jdbcUrl);
             assertTrue(connection.isValid(1));
         }
         catch (SQLException e) {
@@ -25,7 +25,9 @@ class ConnectionManagerTest {
 
     @Test
     void getConnection_givenInvalidJdbcUrl_returnNullConnection() {
-        Connection connection = ConnectionManager.getConnection("invalidJdbcUrl");
-        assertNull(connection);
+        try {
+            ConnectionManager.getConnection("invalidJdbcUrl");
+            fail();
+        } catch (SQLException ignored) { }
     }
 }

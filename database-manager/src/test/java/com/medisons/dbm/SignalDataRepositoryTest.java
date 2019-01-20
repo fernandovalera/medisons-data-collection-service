@@ -6,11 +6,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SignalDataRepositoryTest {
 
@@ -119,12 +125,13 @@ class SignalDataRepositoryTest {
         signalDataRepository.saveSignalData(SPO2_NAME, signalData);
 
         ResultSet rs = connection.prepareStatement("SELECT timestampMilli, value FROM spo2 ").executeQuery();
-        rs.next();
+        assertTrue(rs.next());
         assertEquals(SPO2_TIMESTAMP_1, rs.getLong(1));
         assertEquals(SPO2_VALUE_1, rs.getDouble(2));
-        rs.next();
+        assertTrue(rs.next());
         assertEquals(SPO2_TIMESTAMP_2, rs.getLong(1));
         assertEquals(SPO2_VALUE_2, rs.getDouble(2));
+        assertFalse(rs.next());
     }
 
     @Test
@@ -163,9 +170,10 @@ class SignalDataRepositoryTest {
         ResultSet rs = connection.prepareStatement(
                 "SELECT timestampFrom, timestampTo, value FROM spo2_score "
         ).executeQuery();
-        rs.next();
+        assertTrue(rs.next());
         assertEquals(SPO2_TIMESTAMP_1, rs.getLong(1));
         assertEquals(SPO2_TIMESTAMP_1, rs.getLong(2));
         assertEquals(SPO2_VALUE_1, rs.getDouble(3));
+        assertFalse(rs.next());
     }
 }

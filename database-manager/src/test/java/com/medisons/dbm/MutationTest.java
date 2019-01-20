@@ -4,14 +4,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,6 +52,7 @@ class MutationTest {
         SignalData expectedSignalData = new SignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STR, SPO2_DATAPOINTS);
         SignalData actualSignalData = mutation.storeSignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STR, SPO2_DATAPOINTS);
         assertEquals(expectedSignalData, actualSignalData);
+        verify(signalDataRepository).saveSignalData(SPO2_NAME, actualSignalData);
     }
 
     @Test
@@ -60,5 +60,6 @@ class MutationTest {
         SignalScoreRow expectedSignalScore = new SignalScoreRow(SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         SignalScoreRow actualSignalScore = mutation.storeSignalScore(SPO2_NAME, SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         assertEquals(expectedSignalScore, actualSignalScore);
+        verify(signalDataRepository).saveSignalScore(SPO2_NAME, actualSignalScore);
     }
 }
