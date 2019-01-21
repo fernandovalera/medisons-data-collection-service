@@ -6,7 +6,7 @@ type SignalData {
 }
 
 type SignalDataRow {
-    timestamp: Long!
+    timestampMilli: Long!
     value: Float!
 }
 
