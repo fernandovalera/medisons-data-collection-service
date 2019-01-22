@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS signal_info (
 );
 
 CREATE TABLE IF NOT EXISTS spo2 (
-  timestampMilli    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   value             DOUBLE NOT NULL
 );
 

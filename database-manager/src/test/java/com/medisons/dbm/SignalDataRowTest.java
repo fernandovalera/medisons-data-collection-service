@@ -25,7 +25,7 @@ class SignalDataRowTest {
 
     @Test
     void getTimestampMS_givenInitializedObject_returnTimestamp() {
-        assertEquals(SIGNAL_TIMESTAMP_MS, signalDataRow.getTimestampMilli());
+        assertEquals(SIGNAL_TIMESTAMP_MS, signalDataRow.getTimestamp());
     }
 
     @Test

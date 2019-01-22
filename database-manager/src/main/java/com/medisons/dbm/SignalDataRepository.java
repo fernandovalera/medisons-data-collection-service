@@ -22,12 +22,12 @@ public class SignalDataRepository {
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
     private static final String STORE_SIGNAL_SCORE_QUERY = "REPLACE INTO %s_score VALUE (?, ?, ?)";
-    private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestampMilli, value FROM %s WHERE timestampMilli BETWEEN ? AND ? ORDER BY timestampMilli";
+    private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestamp, value FROM %s WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
     private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
             + " ORDER BY timestampFrom";
 
-    private static final String DATA_TIMESTAMP_COLUMN = "timestampMilli";
+    private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
     private static final String VALUE_COLUMN = "value";
     private static final String SCORE_FROM_COLUMN = "timestampFrom";
     private static final String SCORE_TO_COLUM = "timestampTo";

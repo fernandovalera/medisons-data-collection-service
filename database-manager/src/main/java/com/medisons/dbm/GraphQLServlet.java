@@ -21,7 +21,7 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
             signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection(CONNECTION_URL));
         } catch (SQLException e) {
             // Without a connection to the DB, quit the program.
-            System.exit(0);
+            System.exit(1);
         }
     }
 

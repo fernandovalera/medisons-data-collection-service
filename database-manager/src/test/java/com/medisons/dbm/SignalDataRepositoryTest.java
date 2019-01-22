@@ -6,17 +6,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SignalDataRepositoryTest {
 
@@ -53,6 +47,7 @@ class SignalDataRepositoryTest {
         }
 
         connection.prepareStatement(String.format("USE %s", DB)).executeUpdate();
+        connection.prepareStatement("SET @@session.time_zone='+00:00'").executeUpdate();
         flyway = Flyway.configure().dataSource(URL + DB, USER, PASSWORD).load();
     }
 
@@ -109,9 +104,9 @@ class SignalDataRepositoryTest {
         List<SignalDataRow> result = signalDataRepository.getAllSignalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
 
         assertEquals(2, result.size());
-        assertEquals(SPO2_TIMESTAMP_1, result.get(0).getTimestampMilli());
+        assertEquals(SPO2_TIMESTAMP_1, result.get(0).getTimestamp());
         assertEquals(SPO2_VALUE_1, result.get(0).getValue());
-        assertEquals(SPO2_TIMESTAMP_2, result.get(1).getTimestampMilli());
+        assertEquals(SPO2_TIMESTAMP_2, result.get(1).getTimestamp());
         assertEquals(SPO2_VALUE_2, result.get(1).getValue());
     }
 
@@ -124,7 +119,7 @@ class SignalDataRepositoryTest {
 
         signalDataRepository.saveSignalData(SPO2_NAME, signalData);
 
-        ResultSet rs = connection.prepareStatement("SELECT timestampMilli, value FROM spo2 ").executeQuery();
+        ResultSet rs = connection.prepareStatement("SELECT timestamp, value FROM spo2 ").executeQuery();
         assertTrue(rs.next());
         assertEquals(SPO2_TIMESTAMP_1, rs.getLong(1));
         assertEquals(SPO2_VALUE_1, rs.getDouble(2));
