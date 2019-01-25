@@ -22,4 +22,15 @@ public class SignalScoreRow {
     public double getValue() {
         return value;
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof SignalScoreRow)) {
+            return false;
+        }
+
+        SignalScoreRow other = (SignalScoreRow) object;
+        return other.timestampFrom == this.timestampFrom && other.timestampTo == this.timestampTo
+                && other.value == this.value;
+    }
 }

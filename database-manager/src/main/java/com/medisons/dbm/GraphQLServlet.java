@@ -8,14 +8,21 @@ import graphql.servlet.GraphQLQueryInvoker;
 import graphql.servlet.SimpleGraphQLHttpServlet;
 
 import javax.servlet.annotation.WebServlet;
+import java.sql.SQLException;
 
 @WebServlet(name = "GraphQLServlet", urlPatterns = {"graphql"}, loadOnStartup = 1)
 public class GraphQLServlet extends SimpleGraphQLHttpServlet {
 
-    private static final SignalDataRepository signalDataRepository;
+    private static SignalDataRepository signalDataRepository;
+    private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/signals";
 
     static {
-        signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection());
+        try {
+            signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection(CONNECTION_URL));
+        } catch (SQLException e) {
+            // Without a connection to the DB, quit the program.
+            System.exit(1);
+        }
     }
 
     public GraphQLServlet() {

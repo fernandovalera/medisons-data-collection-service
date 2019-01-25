@@ -1,12 +1,18 @@
 package com.medisons.dbm;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 public class SignalDataRepository {
@@ -16,12 +22,12 @@ public class SignalDataRepository {
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
     private static final String STORE_SIGNAL_SCORE_QUERY = "REPLACE INTO %s_score VALUE (?, ?, ?)";
-    private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestampMilli, value FROM %s WHERE timestampMilli BETWEEN ? AND ? ORDER BY timestampMilli";
+    private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestamp, value FROM %s WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
     private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
             + " ORDER BY timestampFrom";
 
-    private static final String DATA_TIMESTAMP_COLUMN = "timestampMilli";
+    private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
     private static final String VALUE_COLUMN = "value";
     private static final String SCORE_FROM_COLUMN = "timestampFrom";
     private static final String SCORE_TO_COLUM = "timestampTo";
@@ -44,18 +50,6 @@ public class SignalDataRepository {
             e.printStackTrace();
         }
         return false;
-    }
-
-    private void createSignalInfoEntry(String signalName, double frequency) {
-        try {
-            PreparedStatement statement = this.signalDataConnection.prepareStatement(STORE_SIGNAL_INFO_ENTRY_QUERY);
-            statement.setString(1, signalName);
-            statement.setDouble(2, frequency);
-            statement.executeUpdate();
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public SignalData getAllSignalData(String signalName, long from, long to) {
@@ -111,17 +105,27 @@ public class SignalDataRepository {
 
         if (!tableExists(signalName)) {
             LOG.info(String.format("Could not find table for signal '%s'.", signalName));
-
             return;
         }
 
+        // Create and execute signal info update query
         double frequency = signalData.getFrequency();
+        try {
+            PreparedStatement statement = this.signalDataConnection.prepareStatement(STORE_SIGNAL_INFO_ENTRY_QUERY);
+            statement.setString(1, signalName);
+            statement.setDouble(2, frequency);
+            statement.executeUpdate();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-        createSignalInfoEntry(signalName, frequency);
-
+        // Convert data points list to a comma separated string
         try {
             Calendar calendar = Calendar.getInstance();
-            Date date = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").parse(signalData.getTimestamp());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = simpleDateFormat.parse(signalData.getTimestamp());
             calendar.setTime(date);
 
             long timeInMS = calendar.getTimeInMillis();
@@ -137,6 +141,7 @@ public class SignalDataRepository {
             e.printStackTrace();
         }
 
+        // Create and execute signal data update query
         String query = String.format(STORE_SIGNAL_DATA_QUERY, signalName, dataPointsString);
         try {
             Statement statement = signalDataConnection.createStatement();
@@ -194,7 +199,9 @@ public class SignalDataRepository {
             dataPoints.add(rs.getDouble(2));
         }
 
-        String timestamp = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").format(new Date(timeInMS));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = simpleDateFormat.format(new Date(timeInMS));
 
         return new SignalData(signalName, frequency, timestamp, dataPoints);
     }

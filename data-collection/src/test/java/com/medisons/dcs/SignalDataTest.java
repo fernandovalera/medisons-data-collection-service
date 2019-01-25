@@ -20,8 +20,7 @@ class SignalDataTest {
 
     @BeforeEach
     void setUp() {
-        signalData = new SignalData(SIGNAL_NAME, SIGNAL_FREQUENCY, SIGNAL_TIMESTAMP,
-                DATA_POINTS);
+        signalData = new SignalData(SIGNAL_NAME, SIGNAL_FREQUENCY, SIGNAL_TIMESTAMP, DATA_POINTS);
     }
 
     @AfterEach
