@@ -1,7 +1,5 @@
 package com.medisons.dbm;
 
-import com.medisons.dbm.SignalDataRow;
-
 import java.util.List;
 
 public class SignalDataRowList {

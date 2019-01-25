@@ -1,11 +1,9 @@
 package com.medisons.dbm;
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
-import com.medisons.dbm.com.medisons.dbm.SignalDataRowList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Query implements GraphQLQueryResolver {
 

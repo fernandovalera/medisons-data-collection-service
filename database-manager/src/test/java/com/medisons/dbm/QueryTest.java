@@ -7,14 +7,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class QueryTest {
 
     private static final String SPO2_NAME = "spo2";
-    private static final long SPO2_TIMESTAMP_1 = 1546300800000L;
-    private static final long SPO2_TIMESTAMP_2 = 1546300801000L;
+    private static final String BP_NAME = "bp";
+
+    private static final long TIMESTAMP_1 = 1546300800000L;
+    private static final long TIMESTAMP_2 = 1546300801000L;
 
     private Query query;
 
@@ -33,19 +38,31 @@ class QueryTest {
 
     @Test
     void allSignalData() {
-        query.allSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+        query.allSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+    }
+
+    @Test
+    void multiSignalDataRow() {
+        List<String> expectedNames = new ArrayList<>();
+        expectedNames.add(SPO2_NAME);
+        expectedNames.add(BP_NAME);
+
+        query.multiSignalDataRow(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
+
+        verify(signalDataRepository).getAllSignalDataRow(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getAllSignalDataRow(BP_NAME, TIMESTAMP_1, TIMESTAMP_2);
     }
 
     @Test
     void signalDataRow() {
-        query.signalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+        query.signalDataRow(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getAllSignalDataRow(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
     }
 
     @Test
     void signalScoreData() {
-        query.signalScoreData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
-        verify(signalDataRepository).getSignalScoreData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+        query.signalScoreData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalScoreData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
     }
 }
