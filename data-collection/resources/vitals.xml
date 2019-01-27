@@ -1,0 +1,12 @@
+<Vitals>
+  <Vital>
+    <Name>spo2</Name>
+    <Frequency>125</Frequency>
+    <DataFile>resources/Sample_Patient_O2_Data_ASCII.txt</DataFile>
+  </Vital>
+  <Vital>
+    <Name>bp</Name>
+    <Frequency>25</Frequency>
+    <DataFile>resources/Sample_Patient_BP_Data_ASCII.txt</DataFile>
+  </Vital>
+</Vitals>
