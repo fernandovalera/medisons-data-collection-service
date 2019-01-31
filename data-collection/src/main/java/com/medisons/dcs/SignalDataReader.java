@@ -174,6 +174,7 @@ public class SignalDataReader {
                     List<SignalData> signalDataList = dataReader.getDataPackets();
                     for (SignalData signalData : signalDataList) {
                         dataDistributor.storeSignalData(signalData);
+                        LOG.info("Storing packet: " + signalData.toString());
                     }
                 }
             } catch (IOException e) {
