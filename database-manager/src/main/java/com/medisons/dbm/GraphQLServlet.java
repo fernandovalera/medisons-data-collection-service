@@ -7,7 +7,11 @@ import graphql.servlet.GraphQLObjectMapper;
 import graphql.servlet.GraphQLQueryInvoker;
 import graphql.servlet.SimpleGraphQLHttpServlet;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.sql.SQLException;
 
 @WebServlet(name = "GraphQLServlet", urlPatterns = {"graphql"}, loadOnStartup = 1)
@@ -47,5 +51,11 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
 
     private static GraphQLObjectMapper objectMapper() {
         return GraphQLObjectMapper.newBuilder().build();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.addHeader("Access-Control-Allow-Origin", "*");
+        super.doPost(req, resp);
     }
 }
