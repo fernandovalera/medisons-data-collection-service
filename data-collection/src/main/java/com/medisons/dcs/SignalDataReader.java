@@ -12,6 +12,7 @@ import java.nio.DoubleBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -30,6 +31,13 @@ public class SignalDataReader {
     private final static int DATA_BUFFER_SIZE = 8000;
 
     private InputStream dataInputStream;
+    private static HashMap<String, String> medicollectorToMedisons = new HashMap<>();
+
+    static {
+        medicollectorToMedisons.put("pleth1","spo2");
+        medicollectorToMedisons.put("bp1","bp");
+        medicollectorToMedisons.put("ecg1","ecg");
+    }
 
     /**
      * Contructs new SignalDataReader.
@@ -107,7 +115,9 @@ public class SignalDataReader {
                 StandardCharsets.UTF_8
         ));
 
-        String signalName = dataString.substring(0, FIELD_SIGNAL_NAME_LENGTH).trim();
+        String signalName = medicollectorToMedisons.get(
+                dataString.substring(0, FIELD_SIGNAL_NAME_LENGTH).trim().toLowerCase()
+        );
         dataString.delete(0, FIELD_SIGNAL_NAME_LENGTH);
 
         Double signalFrequency = Double.parseDouble(dataString.substring(0, FIELD_SIGNAL_FREQUENCY_LENGTH));
