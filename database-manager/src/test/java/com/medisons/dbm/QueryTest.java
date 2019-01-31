@@ -32,19 +32,19 @@ class QueryTest {
     }
 
     @Test
-    void allSignalData() {
+    void allSignalData() throws Exception {
         query.allSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
         verify(signalDataRepository).getAllSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
     }
 
     @Test
-    void signalDataRow() {
+    void signalDataRow() throws Exception {
         query.signalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
         verify(signalDataRepository).getAllSignalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
     }
 
     @Test
-    void signalScoreData() {
+    void signalScoreData() throws Exception {
         query.signalScoreData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
         verify(signalDataRepository).getSignalScoreData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
     }
