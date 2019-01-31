@@ -58,4 +58,10 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
         resp.addHeader("Access-Control-Allow-Origin", "*");
         super.doPost(req, resp);
     }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.addHeader("Access-Control-Allow-Origin", "*");
+        super.doOptions(req, resp);
+    }
 }
