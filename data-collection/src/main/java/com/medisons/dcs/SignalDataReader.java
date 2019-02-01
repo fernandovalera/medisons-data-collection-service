@@ -34,8 +34,8 @@ public class SignalDataReader {
     private static HashMap<String, String> medicollectorToMedisons = new HashMap<>();
 
     static {
-        medicollectorToMedisons.put("pleth1","spo2");
-        medicollectorToMedisons.put("bp1","bp");
+        medicollectorToMedisons.put("pleth","spo2");
+        medicollectorToMedisons.put("pulse_from_nibp","bp");
         medicollectorToMedisons.put("ecg1","ecg");
     }
 
@@ -163,18 +163,18 @@ public class SignalDataReader {
 
     public static void main(String[] args)
     {
-        ServerSocket listener = null;
+        Socket listener = null;
         try {
-            listener = new ServerSocket(DATA_IN_PORT);
+            listener = new Socket("localhost", DATA_IN_PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         while (true) {
             try {
-                Socket dataInSocket = listener.accept();
+                //Socket dataInSocket = listener.accept();
 
-                SignalDataReader dataReader = new SignalDataReader(new BufferedInputStream(dataInSocket.getInputStream()));
+                SignalDataReader dataReader = new SignalDataReader(new BufferedInputStream(listener.getInputStream()));
 
                 DataDistributor dataDistributor = new DataDistributor(HttpClient.newHttpClient());
 
