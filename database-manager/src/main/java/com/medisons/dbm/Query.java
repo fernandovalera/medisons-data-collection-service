@@ -2,6 +2,7 @@ package com.medisons.dbm;
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Query implements GraphQLQueryResolver {
@@ -14,6 +15,17 @@ public class Query implements GraphQLQueryResolver {
 
     public SignalData allSignalData(String signalName, long from, long to) {
         return signalDataRepository.getAllSignalData(signalName, from, to);
+    }
+
+    public List<SignalDataRowList> multiSignalDataRow(List<String> signalNames, long from, long to) {
+        List<SignalDataRowList> multiSignalDataRows = new ArrayList<>();
+        for (String signalName : signalNames)
+        {
+            multiSignalDataRows.add(
+                    new SignalDataRowList(signalName, signalDataRepository.getAllSignalDataRow(signalName, from, to))
+            );
+        }
+        return multiSignalDataRows;
     }
 
     public List<SignalDataRow> signalDataRow(String signalName, long from, long to) {
