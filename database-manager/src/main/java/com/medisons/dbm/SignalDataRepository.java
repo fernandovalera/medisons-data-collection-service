@@ -124,7 +124,6 @@ public class SignalDataRepository {
         try {
             Calendar calendar = Calendar.getInstance();
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
-            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = simpleDateFormat.parse(signalData.getTimestamp());
             calendar.setTime(date);
 
@@ -200,7 +199,6 @@ public class SignalDataRepository {
         }
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String timestamp = simpleDateFormat.format(new Date(timeInMS));
 
         return new SignalData(signalName, frequency, timestamp, dataPoints);
