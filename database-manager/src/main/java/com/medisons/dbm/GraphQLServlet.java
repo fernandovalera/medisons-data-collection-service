@@ -20,6 +20,13 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
     private static SignalDataRepository signalDataRepository;
     private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/signals";
 
+    // Response header keys and values
+    private static final String ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY = "Access-Control-Allow-Origin";
+    private static final String ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_VALUE = "*";
+    private static final String ACCESS_CONTROL_ALLOW_HEADERS_HEADER_KEY = "Access-Control-Allow-Headers";
+    private static final String ACCESS_CONTROL_ALLOW_HEADERS_HEADER_VALUE =
+            "apollographql-client-name,apollographql-client-version,content-type";
+
     static {
         try {
             signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection(CONNECTION_URL));
@@ -55,13 +62,15 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_VALUE);
+        resp.addHeader(ACCESS_CONTROL_ALLOW_HEADERS_HEADER_KEY, ACCESS_CONTROL_ALLOW_HEADERS_HEADER_VALUE);
         super.doPost(req, resp);
     }
 
     @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_VALUE);
+        resp.addHeader(ACCESS_CONTROL_ALLOW_HEADERS_HEADER_KEY, ACCESS_CONTROL_ALLOW_HEADERS_HEADER_VALUE);
         super.doOptions(req, resp);
     }
 }
