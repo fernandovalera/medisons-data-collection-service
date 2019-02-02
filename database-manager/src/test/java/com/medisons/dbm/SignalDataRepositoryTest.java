@@ -7,7 +7,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -111,20 +115,29 @@ class SignalDataRepositoryTest {
     }
 
     @Test
-    void saveSignalData_givenSPO2SignalData_storeTwoItems() throws SQLException {
+    void saveSignalData_givenSPO2SignalData_storeTwoItems() throws SQLException, ParseException {
         List<Double> dataPoints = new ArrayList<>();
         dataPoints.add(SPO2_VALUE_1);
         dataPoints.add(SPO2_VALUE_2);
+        // SPO2_Timestamp_string is in local timezone
         SignalData signalData = new SignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STRING, dataPoints);
 
         signalDataRepository.saveSignalData(SPO2_NAME, signalData);
 
+        // inserted time stamps should be in UTC, calendar converts local date to UTC
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
+        Date date = simpleDateFormat.parse(SPO2_TIMESTAMP_STRING);
+        calendar.setTime(date);
+        long expectedTimeStamp1InMS = calendar.getTimeInMillis();
+        long expectedTimeStamp2InMS = expectedTimeStamp1InMS + 1000L;
+
         ResultSet rs = connection.prepareStatement("SELECT timestamp, value FROM spo2 ").executeQuery();
         assertTrue(rs.next());
-        assertEquals(SPO2_TIMESTAMP_1, rs.getLong(1));
+        assertEquals(expectedTimeStamp1InMS, rs.getLong(1));
         assertEquals(SPO2_VALUE_1, rs.getDouble(2));
         assertTrue(rs.next());
-        assertEquals(SPO2_TIMESTAMP_2, rs.getLong(1));
+        assertEquals(expectedTimeStamp2InMS, rs.getLong(1));
         assertEquals(SPO2_VALUE_2, rs.getDouble(2));
         assertFalse(rs.next());
     }

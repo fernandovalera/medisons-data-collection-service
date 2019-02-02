@@ -127,6 +127,7 @@ public class SignalDataRepository {
             Date date = simpleDateFormat.parse(signalData.getTimestamp());
             calendar.setTime(date);
 
+            // calendar will convert local date to UTC and then get epoch millis
             long timeInMS = calendar.getTimeInMillis();
             for (Double dataPoint : signalData.getDataPoints()) {
                 dataPointsString.append(String.format("(%s,%s),", timeInMS, dataPoint));
@@ -199,6 +200,8 @@ public class SignalDataRepository {
         }
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
+        // date string will be returned as a UTC time
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String timestamp = simpleDateFormat.format(new Date(timeInMS));
 
         return new SignalData(signalName, frequency, timestamp, dataPoints);
