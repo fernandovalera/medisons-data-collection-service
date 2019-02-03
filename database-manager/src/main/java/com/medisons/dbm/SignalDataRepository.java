@@ -47,10 +47,9 @@ public class SignalDataRepository {
             if (tables.next()) {
                 return true;
             }
-
         }
         catch (SQLException e) {
-            LOG.error(e.getMessage());
+            LOG.debug(e.getMessage());
         }
         return false;
     }
@@ -74,7 +73,7 @@ public class SignalDataRepository {
 
                 signalData = newSignalData(signalName, frequency, dataPointsResultSet);
             } else {
-                LOG.error("Input signal name '%s' is not supported.", signalName);
+                LOG.error("Input signal name '{}' is not supported.", signalName);
                 throw new SignalDataDBException();
             }
         }
@@ -91,13 +90,18 @@ public class SignalDataRepository {
         String query = String.format(GET_SIGNAL_DATA_QUERY, signalName);
 
         try {
-            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
-            preparedStatement.setLong(1, from);
-            preparedStatement.setLong(2, to);
-            ResultSet rs = preparedStatement.executeQuery();
+            if (tableExists(signalName)) {
+                PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
+                preparedStatement.setLong(1, from);
+                preparedStatement.setLong(2, to);
+                ResultSet rs = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                allSignalDataRow.add(newSignalDataRow(rs));
+                while (rs.next()) {
+                    allSignalDataRow.add(newSignalDataRow(rs));
+                }
+            } else {
+                LOG.error("Input signal name '{}' is not supported.", signalName);
+                throw new SignalDataDBException();
             }
         }
         catch (SQLException e) {
@@ -112,7 +116,7 @@ public class SignalDataRepository {
         StringBuilder dataPointsString = new StringBuilder();
 
         if (!tableExists(signalName)) {
-            LOG.info(String.format("Could not find table for signal '%s'.", signalName));
+            LOG.error("Could not find table for signal '{}'.", signalName);
             throw new SignalDataDBException();
         }
 
