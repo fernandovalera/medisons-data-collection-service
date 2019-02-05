@@ -48,7 +48,7 @@ class MutationTest {
     }
 
     @Test
-    void storeSignalData() {
+    void storeSignalData() throws Exception {
         SignalData expectedSignalData = new SignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STR, SPO2_DATAPOINTS);
         SignalData actualSignalData = mutation.storeSignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STR, SPO2_DATAPOINTS);
         assertEquals(expectedSignalData, actualSignalData);
@@ -56,7 +56,7 @@ class MutationTest {
     }
 
     @Test
-    void storeSignalScore() {
+    void storeSignalScore() throws Exception {
         SignalScoreRow expectedSignalScore = new SignalScoreRow(SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         SignalScoreRow actualSignalScore = mutation.storeSignalScore(SPO2_NAME, SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         assertEquals(expectedSignalScore, actualSignalScore);
