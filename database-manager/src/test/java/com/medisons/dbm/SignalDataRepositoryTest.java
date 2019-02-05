@@ -1,14 +1,18 @@
 package com.medisons.dbm;
 
+import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.cj.jdbc.MysqlDataSourceFactory;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,17 +42,22 @@ class SignalDataRepositoryTest {
 
     @BeforeAll
     static void setUpConnection () throws SQLException {
-        connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setServerTimezone("UTC");
+        dataSource.setUser(USER);
+        dataSource.setPassword(PASSWORD);
+        dataSource.setURL(URL);
+        connection = dataSource.getConnection();
 
         try {
             connection.prepareStatement(String.format("CREATE DATABASE %s", DB)).executeUpdate();
         } catch (SQLException e) {
             // Database already exists.
         }
-
         connection.prepareStatement(String.format("USE %s", DB)).executeUpdate();
-        connection.prepareStatement("SET @@session.time_zone='+00:00'").executeUpdate();
-        flyway = Flyway.configure().dataSource(URL + DB, USER, PASSWORD).load();
+
+        dataSource.setDatabaseName(DB);
+        flyway = Flyway.configure().schemas(DB).dataSource(dataSource).load();
     }
 
     @BeforeEach

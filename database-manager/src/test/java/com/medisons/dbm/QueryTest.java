@@ -43,6 +43,18 @@ class QueryTest {
     }
 
     @Test
+    void multiSignalData() {
+        List<String> expectedNames = new ArrayList<>();
+        expectedNames.add(SPO2_NAME);
+        expectedNames.add(BP_NAME);
+
+        query.multiSignalData(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
+
+        verify(signalDataRepository).getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getAllSignalData(BP_NAME, TIMESTAMP_1, TIMESTAMP_2);
+    }
+
+    @Test
     void multiSignalDataRow() {
         List<String> expectedNames = new ArrayList<>();
         expectedNames.add(SPO2_NAME);
