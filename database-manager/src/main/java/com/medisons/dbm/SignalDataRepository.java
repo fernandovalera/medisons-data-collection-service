@@ -1,5 +1,8 @@
 package com.medisons.dbm;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -13,11 +16,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Logger;
 
 public class SignalDataRepository {
 
-    private static final Logger LOG = Logger.getLogger(SignalDataRepository.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(SignalDataRepository.class.getName());
 
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
@@ -47,13 +49,13 @@ public class SignalDataRepository {
             }
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.debug(e.getMessage());
         }
         return false;
     }
 
-    public SignalData getAllSignalData(String signalName, long from, long to) {
-        SignalData signalData = null;
+    public SignalData getAllSignalData(String signalName, long from, long to) throws SignalDataDBException {
+        SignalData signalData;
 
         try {
             PreparedStatement preparedStatement = signalDataConnection.prepareStatement(GET_SIGNAL_FREQUENCY_QUERY);
@@ -71,41 +73,51 @@ public class SignalDataRepository {
 
                 signalData = newSignalData(signalName, frequency, dataPointsResultSet);
             } else {
-                // TODO: Should notify client that signal name was not recognized.
+                LOG.error("Input signal name '{}' is not supported.", signalName);
+                throw new SignalDataDBException();
             }
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
+
         return signalData;
     }
 
-    public List<SignalDataRow> getAllSignalDataRow(String signalName, long from, long to) {
+    public List<SignalDataRow> getAllSignalDataRow(String signalName, long from, long to) throws SignalDataDBException {
         List<SignalDataRow> allSignalDataRow = new ArrayList<>();
+        String query = String.format(GET_SIGNAL_DATA_QUERY, signalName);
 
         try {
-            String query = String.format(GET_SIGNAL_DATA_QUERY, signalName);
-            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
-            preparedStatement.setLong(1, from);
-            preparedStatement.setLong(2, to);
-            ResultSet rs = preparedStatement.executeQuery();
+            if (tableExists(signalName)) {
+                PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
+                preparedStatement.setLong(1, from);
+                preparedStatement.setLong(2, to);
+                ResultSet rs = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                allSignalDataRow.add(newSignalDataRow(rs));
+                while (rs.next()) {
+                    allSignalDataRow.add(newSignalDataRow(rs));
+                }
+            } else {
+                LOG.error("Input signal name '{}' is not supported.", signalName);
+                throw new SignalDataDBException();
             }
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
+
         return allSignalDataRow;
     }
 
-    public void saveSignalData(String signalName, SignalData signalData) {
+    public void saveSignalData(String signalName, SignalData signalData) throws SignalDataDBException {
         StringBuilder dataPointsString = new StringBuilder();
 
         if (!tableExists(signalName)) {
-            LOG.info(String.format("Could not find table for signal '%s'.", signalName));
-            return;
+            LOG.error("Could not find table for signal '{}'.", signalName);
+            throw new SignalDataDBException();
         }
 
         // Create and execute signal info update query
@@ -117,7 +129,8 @@ public class SignalDataRepository {
             statement.executeUpdate();
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
 
         // Convert data points list to a comma separated string
@@ -138,26 +151,27 @@ public class SignalDataRepository {
             dataPointsString.deleteCharAt(dataPointsString.length()-1);
         }
         catch (ParseException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
 
         // Create and execute signal data update query
         String query = String.format(STORE_SIGNAL_DATA_QUERY, signalName, dataPointsString);
         try {
             Statement statement = signalDataConnection.createStatement();
-
             statement.executeUpdate(query);
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
     }
 
-    public List<SignalScoreRow> getSignalScoreData (String signalName, long from, long to) {
+    public List<SignalScoreRow> getSignalScoreData (String signalName, long from, long to) throws SignalDataDBException {
         List<SignalScoreRow> signalScoreData = new ArrayList<>();
+        String query = String.format(GET_SIGNAL_SCORE_QUERY, signalName);
 
         try {
-            String query = String.format(GET_SIGNAL_SCORE_QUERY, signalName);
             PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
             preparedStatement.setLong(1, from);
             preparedStatement.setLong(2, to);
@@ -168,14 +182,17 @@ public class SignalDataRepository {
             }
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
+
         return signalScoreData;
     }
 
-    public void saveSignalScore(String signalName, SignalScoreRow signalScoreRow) {
+    public void saveSignalScore(String signalName, SignalScoreRow signalScoreRow) throws SignalDataDBException {
+        String query = String.format(STORE_SIGNAL_SCORE_QUERY, signalName);
+
         try {
-            String query = String.format(STORE_SIGNAL_SCORE_QUERY, signalName);
             PreparedStatement preparedStatement = signalDataConnection.prepareStatement(query);
             preparedStatement.setLong(1, signalScoreRow.getTimestampFrom());
             preparedStatement.setLong(2, signalScoreRow.getTimestampTo());
@@ -184,7 +201,8 @@ public class SignalDataRepository {
             preparedStatement.executeUpdate();
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
         }
     }
 
@@ -214,5 +232,16 @@ public class SignalDataRepository {
     private SignalScoreRow newSignalScoreRow(ResultSet rs) throws SQLException {
         return new SignalScoreRow(rs.getLong(SCORE_FROM_COLUMN), rs.getLong(SCORE_TO_COLUM),
                 rs.getDouble(VALUE_COLUMN));
+    }
+
+    public class SignalDataDBException extends Exception {
+
+        public SignalDataDBException() {
+            super();
+        }
+
+        public SignalDataDBException(Exception e) {
+            super(e);
+        }
     }
 }
