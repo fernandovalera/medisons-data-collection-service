@@ -21,11 +21,17 @@ type SignalScoreRow {
     value: Float!
 }
 
+type SignalScoreRowListItem {
+    name: String!
+    score: SignalScoreRow!
+}
+
 type Query {
     allSignalData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : SignalData
     multiSignalDataRow(names: [String!]!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRowList]
     signalDataRow(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRow]
     signalScoreData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRow]
+    lastSignalScoreRowsInRange(from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRowListItem]
 }
 
 type Mutation {

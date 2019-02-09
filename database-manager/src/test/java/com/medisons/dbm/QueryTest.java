@@ -65,4 +65,10 @@ class QueryTest {
         query.signalScoreData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
         verify(signalDataRepository).getSignalScoreData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
     }
+
+    @Test
+    void lastSignalScoreRowsInRange() throws Exception {
+        query.lastSignalScoreRowsInRange(TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getLastSignalScoreRowsInRange(TIMESTAMP_1, TIMESTAMP_2);
+    }
 }
