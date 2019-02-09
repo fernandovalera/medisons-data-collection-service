@@ -13,6 +13,17 @@ public class Query implements GraphQLQueryResolver {
         this.signalDataRepository = signalDataRepository;
     }
 
+    public List<SignalData> multiSignalData(List<String> signalNames, long from, long to) throws Exception {
+        List<SignalData> multiSignalDataList = new ArrayList<>();
+        for (String signalName : signalNames)
+        {
+            multiSignalDataList.add(
+                    signalDataRepository.getAllSignalData(signalName, from, to)
+            );
+        }
+        return multiSignalDataList;
+    }
+
     public SignalData allSignalData(String signalName, long from, long to) throws Exception {
         return signalDataRepository.getAllSignalData(signalName, from, to);
     }
