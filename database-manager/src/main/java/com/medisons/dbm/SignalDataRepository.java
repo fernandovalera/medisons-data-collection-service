@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class SignalDataRepository {
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
     private static final String STORE_SIGNAL_SCORE_QUERY = "REPLACE INTO %s_score VALUE (?, ?, ?)";
+    private static final String STORE_OVERALL_SCORE_QUERY = "REPLACE INTO aggregated_score VALUES (?, ?, ?, ?, ?, ?)";
     private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestamp, value FROM %s WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
     private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
@@ -249,6 +251,44 @@ public class SignalDataRepository {
         }
         catch (SQLException e) {
             LOG.error(e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+    }
+
+    public void saveOverallScore(OverallScoreRow overallScoreRow) throws SignalDataDBException {
+        try {
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(STORE_OVERALL_SCORE_QUERY);
+            preparedStatement.setLong(1, overallScoreRow.getTimestamp());
+            preparedStatement.setDouble(2, overallScoreRow.getValue());
+            if (overallScoreRow.getSpo2() == null) {
+                preparedStatement.setNull(3, Types.DOUBLE);
+            }
+            else {
+                preparedStatement.setDouble(3, overallScoreRow.getSpo2());
+            }
+            if (overallScoreRow.getEcg() == null) {
+                preparedStatement.setNull(4, Types.DOUBLE);
+            }
+            else {
+                preparedStatement.setDouble(4, overallScoreRow.getEcg());
+            }
+            if (overallScoreRow.getResp() == null) {
+                preparedStatement.setNull(5, Types.DOUBLE);
+            }
+            else {
+                preparedStatement.setDouble(5, overallScoreRow.getResp());
+            }
+            if (overallScoreRow.getTemp() == null) {
+                preparedStatement.setNull(6, Types.DOUBLE);
+            }
+            else {
+                preparedStatement.setDouble(6, overallScoreRow.getTemp());
+            }
+
+            preparedStatement.executeUpdate();
+        }
+        catch (SQLException e) {
+            LOG.error("Error executing store overall score query: " + e.getMessage());
             throw new SignalDataDBException(e);
         }
     }

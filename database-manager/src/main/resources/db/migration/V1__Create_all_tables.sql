@@ -38,3 +38,12 @@ CREATE TABLE IF NOT EXISTS spo2_score (
   value             DOUBLE NOT NULL,
   CONSTRAINT PK_spo2_score PRIMARY KEY (timestampFrom, timestampTo)
 );
+
+CREATE TABLE IF NOT EXISTS aggregated_score (
+  timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  value             DOUBLE NULL,
+  spo2_score        DOUBLE NULL,
+  ecg_score         DOUBLE NULL,
+  resp_rate_score   DOUBLE NULL,
+  temperature_score DOUBLE NULL
+);

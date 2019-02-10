@@ -26,6 +26,15 @@ type SignalScoreRowListItem {
     score: SignalScoreRow!
 }
 
+type OverallScoreRow {
+    timestamp: Long!
+    value: Float!
+    spo2: Float
+    ecg: Float
+    resp: Float
+    temp: Float
+}
+
 type Query {
     allSignalData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : SignalData
     multiSignalData(names: [String!]!, from: Long = 0, to: Long = 9223372036854775807) : [SignalData]
@@ -38,6 +47,7 @@ type Query {
 type Mutation {
     storeSignalData(name: String!, frequency: Float!, timestamp: String!, dataPoints: [Float!]!): SignalData
     storeSignalScore(name: String!, from: Long!, to: Long!, value: Float!): SignalScoreRow
+    storeOverallScore(timestamp: Long!, value: Float!, spo2: Float, ecg: Float, resp: Float, temp: Float) : OverallScoreRow
 }
 
 schema {
