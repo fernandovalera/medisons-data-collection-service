@@ -1,5 +1,7 @@
 package com.medisons.dbm;
 
+import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.cj.jdbc.MysqlDataSourceFactory;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -61,21 +64,22 @@ class SignalDataRepositoryTest {
 
     @BeforeAll
     static void setUpConnection () throws SQLException {
-        Properties connectionProperties = new Properties();
-        connectionProperties.put("serverTimezone", "UTC");
-        connectionProperties.put("user", USER);
-        connectionProperties.put("password", PASSWORD);
-        connection = DriverManager.getConnection(URL, connectionProperties);
+        MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setServerTimezone("UTC");
+        dataSource.setUser(USER);
+        dataSource.setPassword(PASSWORD);
+        dataSource.setURL(URL);
+        connection = dataSource.getConnection();
 
         try {
             connection.prepareStatement(String.format("CREATE DATABASE %s", DB)).executeUpdate();
         } catch (SQLException e) {
             // Database already exists.
         }
-
         connection.prepareStatement(String.format("USE %s", DB)).executeUpdate();
-        connection.prepareStatement("SET @@global.time_zone='+00:00'").executeUpdate();
-        flyway = Flyway.configure().dataSource(URL + DB, USER, PASSWORD).load();
+
+        dataSource.setDatabaseName(DB);
+        flyway = Flyway.configure().schemas(DB).dataSource(dataSource).load();
     }
 
     @BeforeEach
