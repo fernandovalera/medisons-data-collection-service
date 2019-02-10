@@ -42,6 +42,7 @@ type Query {
     signalDataRow(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRow]
     signalScoreData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRow]
     lastSignalScoreRowsInRange(from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRowListItem]
+    overallScoreRow(from: Long = 0, to: Long = 9223372036854775807) : [OverallScoreRow]
 }
 
 type Mutation {

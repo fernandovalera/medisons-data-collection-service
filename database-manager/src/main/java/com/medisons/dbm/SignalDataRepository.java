@@ -33,6 +33,8 @@ public class SignalDataRepository {
     private static final String GET_SIGNAL_SCORE_TABLE_NAMES_QUERY = "SELECT table_name FROM information_schema.tables WHERE table_schema='signals' AND"
             + " TABLE_NAME like '%_score'";
     private static final String GET_LAST_SCORE_IN_RANGE_QUERY = "SELECT * FROM %s where timestampTo BETWEEN ? AND ? ORDER BY timestampTo DESC LIMIT 1";
+    private static final String GET_OVERALL_SCORE_QUERY = "SELECT timestamp, value, spo2_score, ecg_score, resp_rate_score, temperature_score FROM"
+            + " aggregated_score WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
 
     private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
     private static final String VALUE_COLUMN = "value";
@@ -40,6 +42,10 @@ public class SignalDataRepository {
     private static final String SCORE_TO_COLUMN = "timestampTo";
     private static final String TABLE_NAME_COLUMN = "table_name";
     private static final String SCORE_TABLE_NAME_SUFFIX = "_score";
+    private static final String OVERALL_SCORE_SPO2_COLUMN = "spo2_score";
+    private static final String OVERALL_SCORE_ECG_COLUMN = "ecg_score";
+    private static final String OVERALL_SCORE_RESP_COLUMN = "resp_rate_score";
+    private static final String OVERALL_SCORE_TEMP_COLUMN = "temperature_score";
 
     private final Connection signalDataConnection;
 
@@ -293,6 +299,27 @@ public class SignalDataRepository {
         }
     }
 
+    public List<OverallScoreRow> getAllOverallScoreRow(long from, long to) throws SignalDataDBException {
+        List<OverallScoreRow> overallScoreRows = new ArrayList<>();
+
+        try {
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(GET_OVERALL_SCORE_QUERY);
+            preparedStatement.setLong(1, from);
+            preparedStatement.setLong(2, to);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+                overallScoreRows.add(newOverallScoreRow(rs));
+            }
+        }
+        catch (SQLException e) {
+            LOG.error("Error executing get overall scores query: " + e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+
+        return overallScoreRows;
+    }
+
     private SignalData newSignalData(String signalName, double frequency, ResultSet rs) throws SQLException {
         long timeInMS = -1;
         List<Double> dataPoints = new ArrayList<>();
@@ -324,6 +351,20 @@ public class SignalDataRepository {
     private SignalScoreRowListItem newSignalScoreRowListItem(String name, ResultSet rs) throws SQLException {
         SignalScoreRow newSignalScoreRow = newSignalScoreRow(rs);
         return new SignalScoreRowListItem(name, newSignalScoreRow);
+    }
+
+    private OverallScoreRow newOverallScoreRow(ResultSet rs) throws SQLException {
+        Double spo2 = rs.getDouble(OVERALL_SCORE_SPO2_COLUMN);
+        spo2 = rs.wasNull() ? null : spo2;
+        Double ecg = rs.getDouble(OVERALL_SCORE_ECG_COLUMN);
+        ecg = rs.wasNull() ? null : ecg;
+        Double resp = rs.getDouble(OVERALL_SCORE_RESP_COLUMN);
+        resp = rs.wasNull() ? null : resp;
+        Double temp = rs.getDouble(OVERALL_SCORE_TEMP_COLUMN);
+        temp = rs.wasNull() ? null : temp;
+
+        return new OverallScoreRow(rs.getLong(DATA_TIMESTAMP_COLUMN), rs.getDouble(VALUE_COLUMN),
+                spo2, ecg, resp, temp);
     }
 
     public class SignalDataDBException extends Exception {
