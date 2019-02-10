@@ -28,11 +28,16 @@ public class SignalDataRepository {
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
     private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
             + " ORDER BY timestampFrom";
+    private static final String GET_SIGNAL_SCORE_TABLE_NAMES_QUERY = "SELECT table_name FROM information_schema.tables WHERE table_schema='signals' AND"
+            + " TABLE_NAME like '%_score'";
+    private static final String GET_LAST_SCORE_IN_RANGE_QUERY = "SELECT * FROM %s where timestampTo BETWEEN ? AND ? ORDER BY timestampTo DESC LIMIT 1";
 
     private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
     private static final String VALUE_COLUMN = "value";
     private static final String SCORE_FROM_COLUMN = "timestampFrom";
-    private static final String SCORE_TO_COLUM = "timestampTo";
+    private static final String SCORE_TO_COLUMN = "timestampTo";
+    private static final String TABLE_NAME_COLUMN = "table_name";
+    private static final String SCORE_TABLE_NAME_SUFFIX = "_score";
 
     private final Connection signalDataConnection;
 
@@ -189,6 +194,48 @@ public class SignalDataRepository {
         return signalScoreData;
     }
 
+    public List<SignalScoreRowListItem> getLastSignalScoreRowsInRange(long from, long to) throws SignalDataDBException {
+        List<SignalScoreRowListItem> signalScoreRows = new ArrayList<>();
+
+        // get names of score tables
+        List<String> scoreTableNames = new ArrayList<>();
+        try {
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(
+                    GET_SIGNAL_SCORE_TABLE_NAMES_QUERY);
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                scoreTableNames.add(rs.getString(TABLE_NAME_COLUMN));
+            }
+        }
+        catch (SQLException e) {
+            LOG.error("Error executing get signal score table names query: " + e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+
+        // get last score in provided range for each score table
+        try {
+            for (String scoreTableName : scoreTableNames) {
+                String getLastScoreInRangeQuery = String.format(GET_LAST_SCORE_IN_RANGE_QUERY, scoreTableName);
+                PreparedStatement preparedStatement = signalDataConnection.prepareStatement(getLastScoreInRangeQuery);
+                preparedStatement.setLong(1, from);
+                preparedStatement.setLong(2, to);
+                ResultSet rs = preparedStatement.executeQuery();
+
+                // max one row expected
+                if (rs.next()) {
+                    String signalName = scoreTableName.substring(0, scoreTableName.indexOf(SCORE_TABLE_NAME_SUFFIX));
+                    signalScoreRows.add(newSignalScoreRowListItem(signalName, rs));
+                }
+            }
+        }
+        catch (SQLException e) {
+            LOG.error("Error executing get last score in range query for table: " + e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+
+        return signalScoreRows;
+    }
+
     public void saveSignalScore(String signalName, SignalScoreRow signalScoreRow) throws SignalDataDBException {
         String query = String.format(STORE_SIGNAL_SCORE_QUERY, signalName);
 
@@ -230,8 +277,13 @@ public class SignalDataRepository {
     }
 
     private SignalScoreRow newSignalScoreRow(ResultSet rs) throws SQLException {
-        return new SignalScoreRow(rs.getLong(SCORE_FROM_COLUMN), rs.getLong(SCORE_TO_COLUM),
+        return new SignalScoreRow(rs.getLong(SCORE_FROM_COLUMN), rs.getLong(SCORE_TO_COLUMN),
                 rs.getDouble(VALUE_COLUMN));
+    }
+
+    private SignalScoreRowListItem newSignalScoreRowListItem(String name, ResultSet rs) throws SQLException {
+        SignalScoreRow newSignalScoreRow = newSignalScoreRow(rs);
+        return new SignalScoreRowListItem(name, newSignalScoreRow);
     }
 
     public class SignalDataDBException extends Exception {

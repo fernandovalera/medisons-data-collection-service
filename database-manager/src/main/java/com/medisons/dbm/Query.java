@@ -46,4 +46,8 @@ public class Query implements GraphQLQueryResolver {
     public List<SignalScoreRow> signalScoreData(String signalName, long from, long to) throws Exception {
         return signalDataRepository.getSignalScoreData(signalName, from, to);
     }
+
+    public List<SignalScoreRowListItem> lastSignalScoreRowsInRange(long from, long to) throws Exception {
+        return signalDataRepository.getLastSignalScoreRowsInRange(from, to);
+    }
 }

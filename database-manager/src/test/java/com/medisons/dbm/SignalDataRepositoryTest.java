@@ -30,15 +30,23 @@ class SignalDataRepositoryTest {
 
     private static final String SPO2_NAME = "spo2";
     private static final double SPO2_FREQUENCY = 1.0d;
+    private static final String ECG_NAME ="ecg";
 
     private static final String SPO2_TIMESTAMP_STRING = "2019.01.01 00:00:00.000";
     private static final long SPO2_TIMESTAMP_1 = 1546300800000L;
     private static final long SPO2_TIMESTAMP_2 = 1546300801000L;
     private static final long SPO2_TIMESTAMP_3 = 1546300802000L;
+    private static final long ECG_TIMESTAMP_1 = 1546300801000L;
+    private static final long ECG_TIMESTAMP_2 = 1546300802000L;
+    private static final long ECG_TIMESTAMP_3 = 1546300803000L;
 
     private static final double SPO2_VALUE_1 = 1.5D;
     private static final double SPO2_VALUE_2 = 2.7D;
     private static final double SPO2_VALUE_3 = 3.4D;
+    private static final double ECG_VALUE_1 = 9.1D;
+    private static final double ECG_VALUE_2 = 6.3D;
+    private static final double ECG_VALUE_3 = 1.9D;
+
 
     private static final String INVALID_SIGNAL_NAME = "yo";
 
@@ -317,5 +325,113 @@ class SignalDataRepositoryTest {
         } catch (Exception ignored) {
 
         }
+    }
+
+    @Test
+    void getLastSignalScoreRowsInRange_lastScoreReturned() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO spo2_score VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)"
+        );
+        preparedStatement.setLong(1, SPO2_TIMESTAMP_1);
+        preparedStatement.setLong(2, SPO2_TIMESTAMP_1);
+        preparedStatement.setDouble(3, SPO2_VALUE_1);
+        preparedStatement.setLong(4, SPO2_TIMESTAMP_2);
+        preparedStatement.setLong(5, SPO2_TIMESTAMP_2);
+        preparedStatement.setDouble(6, SPO2_VALUE_2);
+        preparedStatement.setLong(7, SPO2_TIMESTAMP_3);
+        preparedStatement.setLong(8, SPO2_TIMESTAMP_3);
+        preparedStatement.setDouble(9, SPO2_VALUE_3);
+        preparedStatement.executeUpdate();
+
+        List<SignalScoreRowListItem> result = null;
+        try {
+            result = signalDataRepository.getLastSignalScoreRowsInRange(SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_3);
+        }
+        catch (Exception e) {
+            fail();
+        }
+
+        assertEquals(1, result.size());
+        SignalScoreRowListItem scoreRow = result.get(0);
+        assertEquals(SPO2_NAME, scoreRow.getName());
+        assertEquals(SPO2_TIMESTAMP_3, scoreRow.getScore().getTimestampFrom());
+        assertEquals(SPO2_TIMESTAMP_3, scoreRow.getScore().getTimestampTo());
+        assertEquals(SPO2_VALUE_3, scoreRow.getScore().getValue());
+    }
+
+    @Test
+    void getLastSignalScoreRowsInRange_lastScoreReturned_twoVitals() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO spo2_score VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)"
+        );
+        preparedStatement.setLong(1, SPO2_TIMESTAMP_1);
+        preparedStatement.setLong(2, SPO2_TIMESTAMP_1);
+        preparedStatement.setDouble(3, SPO2_VALUE_1);
+        preparedStatement.setLong(4, SPO2_TIMESTAMP_2);
+        preparedStatement.setLong(5, SPO2_TIMESTAMP_2);
+        preparedStatement.setDouble(6, SPO2_VALUE_2);
+        preparedStatement.setLong(7, SPO2_TIMESTAMP_3);
+        preparedStatement.setLong(8, SPO2_TIMESTAMP_3);
+        preparedStatement.setDouble(9, SPO2_VALUE_3);
+        preparedStatement.executeUpdate();
+
+        PreparedStatement preparedStatement2 = connection.prepareStatement(
+                "INSERT INTO ecg_score VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)"
+        );
+        preparedStatement2.setLong(1, ECG_TIMESTAMP_1);
+        preparedStatement2.setLong(2, ECG_TIMESTAMP_1);
+        preparedStatement2.setDouble(3, ECG_VALUE_1);
+        preparedStatement2.setLong(4, ECG_TIMESTAMP_2);
+        preparedStatement2.setLong(5, ECG_TIMESTAMP_2);
+        preparedStatement2.setDouble(6, ECG_VALUE_2);
+        preparedStatement2.setLong(7, ECG_TIMESTAMP_3);
+        preparedStatement2.setLong(8, ECG_TIMESTAMP_3);
+        preparedStatement2.setDouble(9, ECG_VALUE_3);
+        preparedStatement2.executeUpdate();
+
+        List<SignalScoreRowListItem> result = null;
+        try {
+            result = signalDataRepository.getLastSignalScoreRowsInRange(SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_3);
+        }
+        catch (Exception e) {
+            fail();
+        }
+
+        assertEquals(2, result.size());
+        SignalScoreRowListItem spo2ScoreRow = getSignalScoreRowByName(SPO2_NAME, result);
+        SignalScoreRowListItem ecgScoreRow = getSignalScoreRowByName(ECG_NAME, result);
+        if (spo2ScoreRow == null || ecgScoreRow == null) {
+            fail("Expected to get an spo2 and ecg score.");
+        }
+
+        assertEquals(SPO2_NAME, spo2ScoreRow.getName());
+        assertEquals(SPO2_TIMESTAMP_3, spo2ScoreRow.getScore().getTimestampFrom());
+        assertEquals(SPO2_TIMESTAMP_3, spo2ScoreRow.getScore().getTimestampTo());
+        assertEquals(SPO2_VALUE_3, spo2ScoreRow.getScore().getValue());
+
+        assertEquals(ECG_NAME, ecgScoreRow.getName());
+        assertEquals(ECG_TIMESTAMP_2, ecgScoreRow.getScore().getTimestampFrom());
+        assertEquals(ECG_TIMESTAMP_2, ecgScoreRow.getScore().getTimestampTo());
+        assertEquals(ECG_VALUE_2, ecgScoreRow.getScore().getValue());
+    }
+
+    @Test
+    void getLastSignalScoreRowsInRange_throwsException() {
+        try {
+            when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
+            signalDataRepository.getLastSignalScoreRowsInRange(SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_3);
+            fail();
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    private SignalScoreRowListItem getSignalScoreRowByName(String signalName, List<SignalScoreRowListItem> scores) {
+        for (SignalScoreRowListItem score : scores) {
+            if (score.getName().equals(signalName)) {
+                return score;
+            }
+        }
+        return null;
     }
 }
