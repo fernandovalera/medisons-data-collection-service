@@ -27,11 +27,11 @@ public class Mutation implements GraphQLMutationResolver {
         return newSignalScoreRow;
     }
 
-    public OverallScoreRow storeOverallScore(long timestamp, double value, Double spo2, Double ecg, Double resp, Double temp)
-            throws Exception
+    public AggregatedScoreRow storeAggregatedScore(long timestamp, double value, Double spo2, Double ecg,
+            Double bp, Double resp, Double temp) throws Exception
     {
-        OverallScoreRow newOverallScoreRow = new OverallScoreRow(timestamp, value, spo2, ecg, resp, temp);
-        signalDataRepository.saveOverallScore(newOverallScoreRow);
-        return newOverallScoreRow;
+        AggregatedScoreRow newAggregatedScoreRow = new AggregatedScoreRow(timestamp, value, spo2, ecg, bp, resp, temp);
+        signalDataRepository.saveAggregatedScore(newAggregatedScoreRow);
+        return newAggregatedScoreRow;
     }
 }

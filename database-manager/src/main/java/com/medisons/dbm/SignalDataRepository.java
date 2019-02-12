@@ -25,15 +25,15 @@ public class SignalDataRepository {
     private static final String STORE_SIGNAL_DATA_QUERY = "REPLACE INTO %s VALUES %s";
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
     private static final String STORE_SIGNAL_SCORE_QUERY = "REPLACE INTO %s_score VALUE (?, ?, ?)";
-    private static final String STORE_OVERALL_SCORE_QUERY = "REPLACE INTO aggregated_score VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String STORE_AGGREGATED_SCORE_QUERY = "REPLACE INTO aggregated_score VALUES (?, ?, ?, ?, ?, ?, ?)";
     private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestamp, value FROM %s WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
     private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
             + " ORDER BY timestampFrom";
     private static final String GET_SIGNAL_SCORE_TABLE_NAMES_QUERY = "SELECT table_name FROM information_schema.tables WHERE table_schema='signals' AND"
-            + " TABLE_NAME like '%_score'";
+            + " table_name like '%_score' AND table_name <> 'aggregated_score'";
     private static final String GET_LAST_SCORE_IN_RANGE_QUERY = "SELECT * FROM %s where timestampTo BETWEEN ? AND ? ORDER BY timestampTo DESC LIMIT 1";
-    private static final String GET_OVERALL_SCORE_QUERY = "SELECT timestamp, value, spo2_score, ecg_score, resp_rate_score, temperature_score FROM"
+    private static final String GET_AGGREGATED_SCORE_QUERY = "SELECT timestamp, value, spo2_score, ecg_score, bp_score, resp_rate_score, temperature_score FROM"
             + " aggregated_score WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
 
     private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
@@ -42,10 +42,11 @@ public class SignalDataRepository {
     private static final String SCORE_TO_COLUMN = "timestampTo";
     private static final String TABLE_NAME_COLUMN = "table_name";
     private static final String SCORE_TABLE_NAME_SUFFIX = "_score";
-    private static final String OVERALL_SCORE_SPO2_COLUMN = "spo2_score";
-    private static final String OVERALL_SCORE_ECG_COLUMN = "ecg_score";
-    private static final String OVERALL_SCORE_RESP_COLUMN = "resp_rate_score";
-    private static final String OVERALL_SCORE_TEMP_COLUMN = "temperature_score";
+    private static final String AGGREGATED_SCORE_SPO2_COLUMN = "spo2_score";
+    private static final String AGGREGATED_SCORE_ECG_COLUMN = "ecg_score";
+    private static final String AGGREGATED_SCORE_BP_COLUMN = "bp_score";
+    private static final String AGGREGATED_SCORE_RESP_COLUMN = "resp_rate_score";
+    private static final String AGGREGATED_SCORE_TEMP_COLUMN = "temperature_score";
 
     private final Connection signalDataConnection;
 
@@ -261,63 +262,69 @@ public class SignalDataRepository {
         }
     }
 
-    public void saveOverallScore(OverallScoreRow overallScoreRow) throws SignalDataDBException {
+    public void saveAggregatedScore(AggregatedScoreRow aggregatedScoreRow) throws SignalDataDBException {
         try {
-            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(STORE_OVERALL_SCORE_QUERY);
-            preparedStatement.setLong(1, overallScoreRow.getTimestamp());
-            preparedStatement.setDouble(2, overallScoreRow.getValue());
-            if (overallScoreRow.getSpo2() == null) {
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(STORE_AGGREGATED_SCORE_QUERY);
+            preparedStatement.setLong(1, aggregatedScoreRow.getTimestamp());
+            preparedStatement.setDouble(2, aggregatedScoreRow.getValue());
+            if (aggregatedScoreRow.getSpo2() == null) {
                 preparedStatement.setNull(3, Types.DOUBLE);
             }
             else {
-                preparedStatement.setDouble(3, overallScoreRow.getSpo2());
+                preparedStatement.setDouble(3, aggregatedScoreRow.getSpo2());
             }
-            if (overallScoreRow.getEcg() == null) {
+            if (aggregatedScoreRow.getEcg() == null) {
                 preparedStatement.setNull(4, Types.DOUBLE);
             }
             else {
-                preparedStatement.setDouble(4, overallScoreRow.getEcg());
+                preparedStatement.setDouble(4, aggregatedScoreRow.getEcg());
             }
-            if (overallScoreRow.getResp() == null) {
+            if (aggregatedScoreRow.getBp() == null) {
                 preparedStatement.setNull(5, Types.DOUBLE);
             }
             else {
-                preparedStatement.setDouble(5, overallScoreRow.getResp());
+                preparedStatement.setDouble(5, aggregatedScoreRow.getBp());
             }
-            if (overallScoreRow.getTemp() == null) {
+            if (aggregatedScoreRow.getResp() == null) {
                 preparedStatement.setNull(6, Types.DOUBLE);
             }
             else {
-                preparedStatement.setDouble(6, overallScoreRow.getTemp());
+                preparedStatement.setDouble(6, aggregatedScoreRow.getResp());
+            }
+            if (aggregatedScoreRow.getTemp() == null) {
+                preparedStatement.setNull(7, Types.DOUBLE);
+            }
+            else {
+                preparedStatement.setDouble(7, aggregatedScoreRow.getTemp());
             }
 
             preparedStatement.executeUpdate();
         }
         catch (SQLException e) {
-            LOG.error("Error executing store overall score query: " + e.getMessage());
+            LOG.error("Error executing store aggregated score query: " + e.getMessage());
             throw new SignalDataDBException(e);
         }
     }
 
-    public List<OverallScoreRow> getAllOverallScoreRow(long from, long to) throws SignalDataDBException {
-        List<OverallScoreRow> overallScoreRows = new ArrayList<>();
+    public List<AggregatedScoreRow> getAllAggregatedScoreRow(long from, long to) throws SignalDataDBException {
+        List<AggregatedScoreRow> aggregatedScoreRows = new ArrayList<>();
 
         try {
-            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(GET_OVERALL_SCORE_QUERY);
+            PreparedStatement preparedStatement = signalDataConnection.prepareStatement(GET_AGGREGATED_SCORE_QUERY);
             preparedStatement.setLong(1, from);
             preparedStatement.setLong(2, to);
             ResultSet rs = preparedStatement.executeQuery();
 
             while (rs.next()) {
-                overallScoreRows.add(newOverallScoreRow(rs));
+                aggregatedScoreRows.add(newAggregatedScoreRow(rs));
             }
         }
         catch (SQLException e) {
-            LOG.error("Error executing get overall scores query: " + e.getMessage());
+            LOG.error("Error executing get aggregated scores query: " + e.getMessage());
             throw new SignalDataDBException(e);
         }
 
-        return overallScoreRows;
+        return aggregatedScoreRows;
     }
 
     private SignalData newSignalData(String signalName, double frequency, ResultSet rs) throws SQLException {
@@ -353,18 +360,20 @@ public class SignalDataRepository {
         return new SignalScoreRowListItem(name, newSignalScoreRow);
     }
 
-    private OverallScoreRow newOverallScoreRow(ResultSet rs) throws SQLException {
-        Double spo2 = rs.getDouble(OVERALL_SCORE_SPO2_COLUMN);
+    private AggregatedScoreRow newAggregatedScoreRow(ResultSet rs) throws SQLException {
+        Double spo2 = rs.getDouble(AGGREGATED_SCORE_SPO2_COLUMN);
         spo2 = rs.wasNull() ? null : spo2;
-        Double ecg = rs.getDouble(OVERALL_SCORE_ECG_COLUMN);
+        Double ecg = rs.getDouble(AGGREGATED_SCORE_ECG_COLUMN);
         ecg = rs.wasNull() ? null : ecg;
-        Double resp = rs.getDouble(OVERALL_SCORE_RESP_COLUMN);
+        Double bp = rs.getDouble(AGGREGATED_SCORE_BP_COLUMN);
+        bp = rs.wasNull() ? null : bp;
+        Double resp = rs.getDouble(AGGREGATED_SCORE_RESP_COLUMN);
         resp = rs.wasNull() ? null : resp;
-        Double temp = rs.getDouble(OVERALL_SCORE_TEMP_COLUMN);
+        Double temp = rs.getDouble(AGGREGATED_SCORE_TEMP_COLUMN);
         temp = rs.wasNull() ? null : temp;
 
-        return new OverallScoreRow(rs.getLong(DATA_TIMESTAMP_COLUMN), rs.getDouble(VALUE_COLUMN),
-                spo2, ecg, resp, temp);
+        return new AggregatedScoreRow(rs.getLong(DATA_TIMESTAMP_COLUMN), rs.getDouble(VALUE_COLUMN),
+                spo2, ecg, bp, resp, temp);
     }
 
     public class SignalDataDBException extends Exception {

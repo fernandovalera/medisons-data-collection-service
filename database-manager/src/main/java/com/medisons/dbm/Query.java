@@ -51,7 +51,7 @@ public class Query implements GraphQLQueryResolver {
         return signalDataRepository.getLastSignalScoreRowsInRange(from, to);
     }
 
-    public List<OverallScoreRow> overallScoreRow(long from, long to) throws Exception {
-        return signalDataRepository.getAllOverallScoreRow(from, to);
+    public List<AggregatedScoreRow> aggregatedScoreRows(long from, long to) throws Exception {
+        return signalDataRepository.getAllAggregatedScoreRow(from, to);
     }
 }

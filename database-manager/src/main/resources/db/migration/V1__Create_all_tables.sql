@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS aggregated_score (
   value             DOUBLE NULL,
   spo2_score        DOUBLE NULL,
   ecg_score         DOUBLE NULL,
+  bp_score          DOUBLE NULL,
   resp_rate_score   DOUBLE NULL,
   temperature_score DOUBLE NULL
 );
