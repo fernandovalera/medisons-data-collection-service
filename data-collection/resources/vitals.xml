@@ -9,4 +9,9 @@
     <Frequency>25</Frequency>
     <DataFile>resources/Sample_Patient_BP_Data_ASCII.txt</DataFile>
   </Vital>
+  <Vital>
+    <Name>ecg</Name>
+    <Frequency>300</Frequency>
+    <DataFile>resources/Sample_Patient_ECG_Data_ASCII.txt</DataFile>
+  </Vital>
 </Vitals>
