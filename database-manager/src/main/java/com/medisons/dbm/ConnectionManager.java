@@ -12,15 +12,20 @@ public class ConnectionManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionManager.class.getName());
 
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "";
+    protected static final String USERNAME = "root";
+    protected static final String PASSWORD = "";
 
-    static Connection getConnection(String url) throws SQLException {
+    private String url;
+
+    public ConnectionManager(String url) {
+        this.url = url;
+    }
+
+    public Connection getConnection() throws SQLException {
         Connection conn;
 
         try {
             Properties connectionProperties = new Properties();
-            connectionProperties.put("serverTimezone", "UTC");
             connectionProperties.put("user", USERNAME);
             connectionProperties.put("password", PASSWORD);
 
@@ -32,4 +37,5 @@ public class ConnectionManager {
 
         return conn;
     }
+
 }
