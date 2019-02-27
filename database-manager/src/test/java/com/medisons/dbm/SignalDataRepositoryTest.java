@@ -1,7 +1,6 @@
 package com.medisons.dbm;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
-import com.mysql.cj.jdbc.MysqlDataSourceFactory;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.sql.DataSource;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -46,6 +43,28 @@ class SignalDataRepositoryTest {
     private static final double ECG_VALUE_1 = 9.1D;
     private static final double ECG_VALUE_2 = 6.3D;
     private static final double ECG_VALUE_3 = 1.9D;
+
+    private static final long AGGREGATE_TIMESTAMP_1 = 1546300802000L;
+    private static final double AGGREGATE_VALUE_1 = 7.5;
+    private static final Double AGGREGATE_SPO2_1 = 1.5;
+    private static final Double AGGREGATE_ECG_1 = 3.0;
+    private static final Double AGGREGATE_BP_1 = 0.0;
+    private static final Double AGGREGATE_RESP_1 = 2.0;
+    private static final Double AGGREGATE_TEMP_1 = 1.0;
+    private static final long AGGREGATE_TIMESTAMP_2 = 1546300803000L;
+    private static final double AGGREGATE_VALUE_2 = 5.0;
+    private static final Double AGGREGATE_SPO2_2 = 1.0;
+    private static final Double AGGREGATE_ECG_2 = 1.0;
+    private static final Double AGGREGATE_BP_2 = 1.0;
+    private static final Double AGGREGATE_RESP_2 = 1.0;
+    private static final Double AGGREGATE_TEMP_2 = 1.0;
+    private static final long AGGREGATE_TIMESTAMP_3 = 1546300804000L;
+    private static final double AGGREGATE_VALUE_3 = 3.0;
+    private static final Double AGGREGATE_SPO2_3 = 1.0;
+    private static final Double AGGREGATE_ECG_3 = 2.0;
+    private static final Double AGGREGATE_BP_3 = null;
+    private static final Double AGGREGATE_RESP_3 = null;
+    private static final Double AGGREGATE_TEMP_3 = null;
 
 
     private static final String INVALID_SIGNAL_NAME = "yo";
@@ -426,6 +445,160 @@ class SignalDataRepositoryTest {
         }
     }
 
+    @Test
+    void saveAggregatedScore_noNullValues() throws SQLException {
+        AggregatedScoreRow aggregatedScoreRow = new AggregatedScoreRow(AGGREGATE_TIMESTAMP_1, AGGREGATE_VALUE_1, AGGREGATE_SPO2_1,
+                AGGREGATE_ECG_1, AGGREGATE_BP_1, AGGREGATE_RESP_1, AGGREGATE_TEMP_1);
+        try {
+            signalDataRepository.saveAggregatedScore(aggregatedScoreRow);
+        } catch (Exception e) {
+            fail();
+        }
+
+        ResultSet rs = connection.prepareStatement(
+                "SELECT timestamp, value, spo2_score, ecg_score, bp_score, resp_rate_score, temperature_score FROM aggregated_score"
+        ).executeQuery();
+
+        assertTrue(rs.next());
+        assertEquals(AGGREGATE_TIMESTAMP_1, rs.getLong(1));
+        assertEquals(AGGREGATE_VALUE_1, rs.getDouble(2));
+        assertEquals((double) AGGREGATE_SPO2_1, rs.getDouble(3));
+        assertEquals((double) AGGREGATE_ECG_1, rs.getDouble(4));
+        assertEquals((double) AGGREGATE_BP_1, rs.getDouble(5));
+        assertEquals((double) AGGREGATE_RESP_1, rs.getDouble(6));
+        assertEquals((double) AGGREGATE_TEMP_1, rs.getDouble(7));
+        assertFalse(rs.next());
+    }
+
+    @Test
+    void saveAggregatedScore_nullValues() throws SQLException {
+        AggregatedScoreRow aggregatedScoreRow = new AggregatedScoreRow(AGGREGATE_TIMESTAMP_3, AGGREGATE_VALUE_3, AGGREGATE_SPO2_3,
+                AGGREGATE_ECG_3, AGGREGATE_BP_3, AGGREGATE_RESP_3, AGGREGATE_TEMP_3);
+        try {
+            signalDataRepository.saveAggregatedScore(aggregatedScoreRow);
+        } catch (Exception e) {
+            fail();
+        }
+
+        ResultSet rs = connection.prepareStatement(
+                "SELECT timestamp, value, spo2_score, ecg_score, bp_score, resp_rate_score, temperature_score FROM aggregated_score"
+        ).executeQuery();
+
+        assertTrue(rs.next());
+        assertEquals(AGGREGATE_TIMESTAMP_3, rs.getLong(1));
+        assertEquals(AGGREGATE_VALUE_3, rs.getDouble(2));
+        assertEquals((double) AGGREGATE_SPO2_3, rs.getDouble(3));
+        assertEquals((double) AGGREGATE_ECG_3, rs.getDouble(4));
+        rs.getDouble(5);
+        assertTrue(rs.wasNull());
+        rs.getDouble(6);
+        assertTrue(rs.wasNull());
+        rs.getDouble(7);
+        assertTrue(rs.wasNull());
+    }
+
+    @Test
+    void saveAggregatedScore_throwsException() {
+        AggregatedScoreRow aggregatedScoreRow = new AggregatedScoreRow(AGGREGATE_TIMESTAMP_1, AGGREGATE_VALUE_1, AGGREGATE_SPO2_1,
+                AGGREGATE_ECG_1, AGGREGATE_BP_1, AGGREGATE_RESP_1, AGGREGATE_TEMP_1);
+        try {
+            when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
+            signalDataRepository.saveAggregatedScore(aggregatedScoreRow);
+            fail();
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    @Test
+    void getAggregatedScoreRowList_twoRows_noNullComponents() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO aggregated_score VALUES (?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?)"
+        );
+        preparedStatement.setLong(1, AGGREGATE_TIMESTAMP_1);
+        preparedStatement.setDouble(2, AGGREGATE_VALUE_1);
+        preparedStatement.setDouble(3, AGGREGATE_SPO2_1);
+        preparedStatement.setDouble(4, AGGREGATE_ECG_1);
+        preparedStatement.setDouble(5, AGGREGATE_BP_1);
+        preparedStatement.setDouble(6, AGGREGATE_RESP_1);
+        preparedStatement.setDouble(7, AGGREGATE_TEMP_1);
+        preparedStatement.setLong(8, AGGREGATE_TIMESTAMP_2);
+        preparedStatement.setDouble(9, AGGREGATE_VALUE_2);
+        preparedStatement.setDouble(10, AGGREGATE_SPO2_2);
+        preparedStatement.setDouble(11, AGGREGATE_ECG_2);
+        preparedStatement.setDouble(12, AGGREGATE_BP_2);
+        preparedStatement.setDouble(13, AGGREGATE_RESP_2);
+        preparedStatement.setDouble(14, AGGREGATE_TEMP_2);
+        preparedStatement.executeUpdate();
+
+        AggregatedScoreRowList result = null;
+        try {
+            result = signalDataRepository.getAggregatedScoreRowList(AGGREGATE_TIMESTAMP_1, AGGREGATE_TIMESTAMP_2);
+        }
+        catch (Exception e) {
+            fail();
+        }
+
+        AggregatedScoreRowList expectedList = getExpectedAggregatedScoreRowList();
+        assertEquals(expectedList.getTimestamp(), result.getTimestamp());
+        assertEquals(expectedList.getValue(), result.getValue());
+        assertEquals(expectedList.getSpo2(), result.getSpo2());
+        assertEquals(expectedList.getEcg(), result.getEcg());
+        assertEquals(expectedList.getBp(), result.getBp());
+        assertEquals(expectedList.getResp(), result.getResp());
+        assertEquals(expectedList.getTemp(), result.getTemp());
+    }
+
+    @Test
+    void getAggregatedScoreRowList_twoRows_nullComponents() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO aggregated_score VALUES (?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?)"
+        );
+        preparedStatement.setLong(1, AGGREGATE_TIMESTAMP_1);
+        preparedStatement.setDouble(2, AGGREGATE_VALUE_1);
+        preparedStatement.setDouble(3, AGGREGATE_SPO2_1);
+        preparedStatement.setDouble(4, AGGREGATE_ECG_1);
+        preparedStatement.setDouble(5, AGGREGATE_BP_1);
+        preparedStatement.setDouble(6, AGGREGATE_RESP_1);
+        preparedStatement.setDouble(7, AGGREGATE_TEMP_1);
+        preparedStatement.setLong(8, AGGREGATE_TIMESTAMP_3);
+        preparedStatement.setDouble(9, AGGREGATE_VALUE_3);
+        preparedStatement.setDouble(10, AGGREGATE_SPO2_3);
+        preparedStatement.setDouble(11, AGGREGATE_ECG_3);
+        preparedStatement.setNull(12, Types.DOUBLE);
+        preparedStatement.setNull(13, Types.DOUBLE);
+        preparedStatement.setNull(14, Types.DOUBLE);
+        preparedStatement.executeUpdate();
+
+        AggregatedScoreRowList result = null;
+        try {
+            result = signalDataRepository.getAggregatedScoreRowList(AGGREGATE_TIMESTAMP_1, AGGREGATE_TIMESTAMP_3);
+        }
+        catch (Exception e) {
+            fail();
+        }
+
+        AggregatedScoreRowList expectedList = getExpectedAggregatedScoreRowListNullValues();
+        assertEquals(expectedList.getTimestamp(), result.getTimestamp());
+        assertEquals(expectedList.getValue(), result.getValue());
+        assertEquals(expectedList.getSpo2(), result.getSpo2());
+        assertEquals(expectedList.getEcg(), result.getEcg());
+        assertEquals(expectedList.getBp(), result.getBp());
+        assertEquals(expectedList.getResp(), result.getResp());
+        assertEquals(expectedList.getTemp(), result.getTemp());
+    }
+
+    @Test
+    void getAggregatedScoreRowList_throwsException() {
+        try {
+            when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
+            signalDataRepository.getAggregatedScoreRowList(100L, 200L);
+            fail();
+        } catch (Exception ignored) {
+
+        }
+    }
+
     private SignalScoreRowListItem getSignalScoreRowByName(String signalName, List<SignalScoreRowListItem> scores) {
         for (SignalScoreRowListItem score : scores) {
             if (score.getName().equals(signalName)) {
@@ -433,5 +606,55 @@ class SignalDataRepositoryTest {
             }
         }
         return null;
+    }
+
+    private AggregatedScoreRowList getExpectedAggregatedScoreRowList() {
+        List<Long> timestamp = new ArrayList<>();
+        timestamp.add(AGGREGATE_TIMESTAMP_1);
+        timestamp.add(AGGREGATE_TIMESTAMP_2);
+        List<Double> value = new ArrayList<>();
+        value.add(AGGREGATE_VALUE_1);
+        value.add(AGGREGATE_VALUE_2);
+        List<Double> spo2 = new ArrayList<>();
+        spo2.add(AGGREGATE_SPO2_1);
+        spo2.add(AGGREGATE_SPO2_2);
+        List<Double> ecg = new ArrayList<>();
+        ecg.add(AGGREGATE_ECG_1);
+        ecg.add(AGGREGATE_ECG_2);
+        List<Double> bp = new ArrayList<>();
+        bp.add(AGGREGATE_BP_1);
+        bp.add(AGGREGATE_BP_2);
+        List<Double> resp = new ArrayList<>();
+        resp.add(AGGREGATE_RESP_1);
+        resp.add(AGGREGATE_RESP_2);
+        List<Double> temp = new ArrayList<>();
+        temp.add(AGGREGATE_TEMP_1);
+        temp.add(AGGREGATE_TEMP_2);
+        return new AggregatedScoreRowList(timestamp, value, spo2, ecg, bp, resp, temp);
+    }
+
+    private AggregatedScoreRowList getExpectedAggregatedScoreRowListNullValues() {
+        List<Long> timestamp = new ArrayList<>();
+        timestamp.add(AGGREGATE_TIMESTAMP_1);
+        timestamp.add(AGGREGATE_TIMESTAMP_3);
+        List<Double> value = new ArrayList<>();
+        value.add(AGGREGATE_VALUE_1);
+        value.add(AGGREGATE_VALUE_3);
+        List<Double> spo2 = new ArrayList<>();
+        spo2.add(AGGREGATE_SPO2_1);
+        spo2.add(AGGREGATE_SPO2_3);
+        List<Double> ecg = new ArrayList<>();
+        ecg.add(AGGREGATE_ECG_1);
+        ecg.add(AGGREGATE_ECG_3);
+        List<Double> bp = new ArrayList<>();
+        bp.add(AGGREGATE_BP_1);
+        bp.add(AGGREGATE_BP_3);
+        List<Double> resp = new ArrayList<>();
+        resp.add(AGGREGATE_RESP_1);
+        resp.add(AGGREGATE_RESP_3);
+        List<Double> temp = new ArrayList<>();
+        temp.add(AGGREGATE_TEMP_1);
+        temp.add(AGGREGATE_TEMP_3);
+        return new AggregatedScoreRowList(timestamp, value, spo2, ecg, bp, resp, temp);
     }
 }
