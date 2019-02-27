@@ -306,8 +306,14 @@ public class SignalDataRepository {
         }
     }
 
-    public List<AggregatedScoreRow> getAllAggregatedScoreRow(long from, long to) throws SignalDataDBException {
-        List<AggregatedScoreRow> aggregatedScoreRows = new ArrayList<>();
+    public AggregatedScoreRowList getAggregatedScoreRowList(long from, long to) throws SignalDataDBException {
+        List<Long> timestamp = new ArrayList<>();
+        List<Double> value = new ArrayList<>();
+        List<Double> spo2 = new ArrayList<>();
+        List<Double> ecg = new ArrayList<>();
+        List<Double> bp = new ArrayList<>();
+        List<Double> resp = new ArrayList<>();
+        List<Double> temp = new ArrayList<>();
 
         try {
             PreparedStatement preparedStatement = signalDataConnection.prepareStatement(GET_AGGREGATED_SCORE_QUERY);
@@ -316,7 +322,14 @@ public class SignalDataRepository {
             ResultSet rs = preparedStatement.executeQuery();
 
             while (rs.next()) {
-                aggregatedScoreRows.add(newAggregatedScoreRow(rs));
+                AggregatedScoreRow aggregatedScoreRow = newAggregatedScoreRow(rs);
+                timestamp.add(aggregatedScoreRow.getTimestamp());
+                value.add(aggregatedScoreRow.getValue());
+                spo2.add(aggregatedScoreRow.getSpo2());
+                ecg.add(aggregatedScoreRow.getEcg());
+                bp.add(aggregatedScoreRow.getBp());
+                resp.add(aggregatedScoreRow.getResp());
+                temp.add(aggregatedScoreRow.getTemp());
             }
         }
         catch (SQLException e) {
@@ -324,7 +337,7 @@ public class SignalDataRepository {
             throw new SignalDataDBException(e);
         }
 
-        return aggregatedScoreRows;
+        return new AggregatedScoreRowList(timestamp, value, spo2, ecg, bp, resp, temp);
     }
 
     private SignalData newSignalData(String signalName, double frequency, ResultSet rs) throws SQLException {
