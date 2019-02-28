@@ -3,7 +3,12 @@ CREATE TABLE IF NOT EXISTS signal_info (
   frequency         DOUBLE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS bp (
+CREATE TABLE IF NOT EXISTS bp_sys (
+  timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  value             DOUBLE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bp_dia (
   timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   value             DOUBLE NOT NULL
 );
@@ -15,7 +20,7 @@ CREATE TABLE IF NOT EXISTS bp_score (
   CONSTRAINT PK_bp_score PRIMARY KEY (timestampFrom, timestampTo)
 );
 
-CREATE TABLE IF NOT EXISTS ecg(
+CREATE TABLE IF NOT EXISTS ecg (
   timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   value             DOUBLE NOT NULL
 );

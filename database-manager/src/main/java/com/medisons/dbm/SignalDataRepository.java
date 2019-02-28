@@ -68,6 +68,30 @@ public class SignalDataRepository {
         return false;
     }
 
+    public List<String> getSignalTableNamesFromBaseName(String baseSignalName) throws SignalDataDBException {
+        List<String> signalNamesList = new ArrayList<>();
+
+        try {
+            Connection connection = connectionManager.getConnection();
+
+            String tableNamePattern = baseSignalName + "_%";
+            DatabaseMetaData dbm = connection.getMetaData();
+            ResultSet tables = dbm.getTables(null, null, tableNamePattern, null);
+            while (tables.next()) {
+                String tableName = tables.getString("TABLE_NAME");
+                if (!tableName.contains("score")) {
+                    signalNamesList.add(tableName);
+                }
+            }
+        }
+        catch (SQLException e) {
+            LOG.debug(e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+
+        return signalNamesList;
+    }
+
     public SignalData getAllSignalData(String signalName, long from, long to) throws SignalDataDBException {
         SignalData signalData;
 

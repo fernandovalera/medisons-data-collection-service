@@ -17,15 +17,18 @@ public class Query implements GraphQLQueryResolver {
         List<SignalData> multiSignalDataList = new ArrayList<>();
         for (String signalName : signalNames)
         {
-            multiSignalDataList.add(
-                    signalDataRepository.getAllSignalData(signalName, from, to)
-            );
+            multiSignalDataList.addAll(this.allSignalData(signalName, from, to));
         }
         return multiSignalDataList;
     }
 
-    public SignalData allSignalData(String signalName, long from, long to) throws Exception {
-        return signalDataRepository.getAllSignalData(signalName, from, to);
+    public List<SignalData> allSignalData(String baseSignalName, long from, long to) throws Exception {
+        List<String> signalNames = signalDataRepository.getSignalTableNamesFromBaseName(baseSignalName);
+        List<SignalData> signalDataList = new ArrayList<>();
+        for (String signalName : signalNames) {
+            signalDataList.add(signalDataRepository.getAllSignalData(signalName, from, to));
+        }
+        return signalDataList;
     }
 
     public List<SignalDataRowList> multiSignalDataRow(List<String> signalNames, long from, long to) throws Exception {

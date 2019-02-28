@@ -1,7 +1,6 @@
 package com.medisons.dbm;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
-import com.mysql.cj.jdbc.MysqlDataSourceFactory;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,15 +10,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,11 +27,15 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SignalDataRepositoryTest {
+public class SignalDataRepositoryTest {
 
     private static final String SPO2_NAME = "spo2";
+    private static final String ECG_NAME = "ecg";
+    private static final String BP_NAME = "bp";
+    private static final String BP_DIA_NAME = "bp_dia";
+    private static final String BP_SYS_NAME = "bp_sys";
+
     private static final double SPO2_FREQUENCY = 1.0d;
-    private static final String ECG_NAME ="ecg";
 
     private static final String SPO2_TIMESTAMP_STRING = "2019.01.01 00:00:00.000";
     private static final long SPO2_TIMESTAMP_1 = 1546300800000L;
@@ -100,6 +104,20 @@ class SignalDataRepositoryTest {
     void tearDown() throws SQLException {
         signalDataRepository = null;
         connection.close();
+    }
+
+    @Test
+    void getSignalTableNamesFromBaseName_givenBP_returnTwoTables() {
+        List<String> expectedResult = new ArrayList<>();
+        expectedResult.add(BP_DIA_NAME);
+        expectedResult.add(BP_SYS_NAME);
+        List<String> actualResult = null;
+        try {
+            actualResult = signalDataRepository.getSignalTableNamesFromBaseName(BP_NAME);
+        } catch (SignalDataRepository.SignalDataDBException e) {
+            fail();
+        }
+        assertEquals(expectedResult, actualResult);
     }
 
     @Test
