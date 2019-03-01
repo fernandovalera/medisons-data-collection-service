@@ -50,4 +50,8 @@ public class Query implements GraphQLQueryResolver {
     public List<SignalScoreRowListItem> lastSignalScoreRowsInRange(long from, long to) throws Exception {
         return signalDataRepository.getLastSignalScoreRowsInRange(from, to);
     }
+
+    public AggregatedScoreRowList aggregatedScoreRows(long from, long to) throws Exception {
+        return signalDataRepository.getAggregatedScoreRowList(from, to);
+    }
 }

@@ -32,6 +32,15 @@ class MutationTest {
         }
     }
 
+    private static final long AGGREGATE_TIMESTAMP = 1546300802000L;
+    private static final double AGGREGATE_VALUE = 7.5;
+    private static final double AGGREGATE_SPO2 = 1.5;
+    private static final double AGGREGATE_ECG = 3.0;
+    private static final double AGGREGATE_BP = 0.0;
+    private static final double AGGREGATE_RESP = 2.0;
+    private static final double AGGREGATE_TEMP = 1.0;
+
+
     private Mutation mutation;
 
     @Mock
@@ -61,5 +70,15 @@ class MutationTest {
         SignalScoreRow actualSignalScore = mutation.storeSignalScore(SPO2_NAME, SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         assertEquals(expectedSignalScore, actualSignalScore);
         verify(signalDataRepository).saveSignalScore(SPO2_NAME, actualSignalScore);
+    }
+
+    @Test
+    void storeAggregatedScore() throws Exception {
+        AggregatedScoreRow expectedAggregatedScoreRow = new AggregatedScoreRow(AGGREGATE_TIMESTAMP, AGGREGATE_VALUE, AGGREGATE_SPO2,
+                AGGREGATE_ECG, AGGREGATE_BP, AGGREGATE_RESP, AGGREGATE_TEMP);
+        AggregatedScoreRow actualAggregatedScoreRow = mutation.storeAggregatedScore(AGGREGATE_TIMESTAMP, AGGREGATE_VALUE, AGGREGATE_SPO2,
+                AGGREGATE_ECG, AGGREGATE_BP, AGGREGATE_RESP, AGGREGATE_TEMP);
+        assertEquals(expectedAggregatedScoreRow, actualAggregatedScoreRow);
+        verify(signalDataRepository).saveAggregatedScore(actualAggregatedScoreRow);
     }
 }
