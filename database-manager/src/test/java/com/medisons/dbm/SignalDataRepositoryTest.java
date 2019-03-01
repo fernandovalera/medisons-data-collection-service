@@ -121,6 +121,19 @@ public class SignalDataRepositoryTest {
     }
 
     @Test
+    void getSignalTableNamesFromBaseName_givenSPO2_returnOneTable() {
+        List<String> expectedResult = new ArrayList<>();
+        expectedResult.add(SPO2_NAME);
+        List<String> actualResult = null;
+        try {
+            actualResult = signalDataRepository.getSignalTableNamesFromBaseName(SPO2_NAME);
+        } catch (SignalDataRepository.SignalDataDBException e) {
+            fail();
+        }
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
     void getAllSignalData_givenSPO2DataQuery_returnTwoItems() throws SQLException {
         PreparedStatement preparedStatement1 = connection.prepareStatement("INSERT INTO signal_info VALUES (?, ?)");
         preparedStatement1.setString(1, SPO2_NAME);
@@ -136,19 +149,23 @@ public class SignalDataRepositoryTest {
         preparedStatement.setDouble(6, SPO2_VALUE_3);
         preparedStatement.executeUpdate();
 
-        SignalData actualSignalData = null;
+        SignalDataList actualSignalDataList = null;
         try {
-            actualSignalData = signalDataRepository.getAllSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+            actualSignalDataList = signalDataRepository.getAllSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
         } catch (Exception e) {
             fail();
         }
 
-        List<Double> dataPoints = new ArrayList<>();
-        dataPoints.add(SPO2_VALUE_1);
-        dataPoints.add(SPO2_VALUE_2);
-        SignalData expectedSignalData = new SignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STRING, dataPoints);
+        List<Long> timestamps =new ArrayList<>();
+        timestamps.add(SPO2_TIMESTAMP_1);
+        timestamps.add(SPO2_TIMESTAMP_2);
 
-        assertEquals(expectedSignalData, actualSignalData);
+        List<Double> values = new ArrayList<>();
+        values.add(SPO2_VALUE_1);
+        values.add(SPO2_VALUE_2);
+        SignalDataList expectedSignalDataList = new SignalDataList(SPO2_NAME, timestamps, values);
+
+        assertEquals(expectedSignalDataList, actualSignalDataList);
     }
 
     @Test

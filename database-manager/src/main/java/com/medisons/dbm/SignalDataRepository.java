@@ -12,11 +12,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 public class SignalDataRepository {
 
@@ -57,7 +53,8 @@ public class SignalDataRepository {
     private boolean tableExists(String signalName, Connection connection) {
         try {
             DatabaseMetaData dbm = connection.getMetaData();
-            ResultSet tables = dbm.getTables(null, null, signalName, null);
+            ResultSet tables = dbm.getTables(connection.getCatalog(), null, signalName,
+                                             new String[] {"TABLE"});
             if (tables.next()) {
                 return true;
             }
@@ -74,9 +71,10 @@ public class SignalDataRepository {
         try {
             Connection connection = connectionManager.getConnection();
 
-            String tableNamePattern = baseSignalName + "_%";
+            String tableNamePattern = baseSignalName + "%";
             DatabaseMetaData dbm = connection.getMetaData();
-            ResultSet tables = dbm.getTables(null, null, tableNamePattern, null);
+            ResultSet tables = dbm.getTables(connection.getCatalog(), null, tableNamePattern,
+                                             new String[] {"TABLE"});
             while (tables.next()) {
                 String tableName = tables.getString("TABLE_NAME");
                 if (!tableName.contains("score")) {
@@ -92,29 +90,28 @@ public class SignalDataRepository {
         return signalNamesList;
     }
 
-    public SignalData getAllSignalData(String signalName, long from, long to) throws SignalDataDBException {
-        SignalData signalData;
+    public SignalDataList getAllSignalData(String signalName, long from, long to) throws SignalDataDBException {
+        SignalDataList signalDataList;
 
-        try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_SIGNAL_FREQUENCY_QUERY)
-        ) {
-            preparedStatement.setString(1, signalName);
-            try (ResultSet signalFrequencyResultSet = preparedStatement.executeQuery()) {
-                if (signalFrequencyResultSet.next()) {
-                    double frequency = signalFrequencyResultSet.getDouble(1);
-
-                    String dataPointsQuery = String.format(GET_SIGNAL_DATA_QUERY, signalName);
-                    try (PreparedStatement dataPointsPreparedStatement = connection.prepareStatement(dataPointsQuery)) {
-                        dataPointsPreparedStatement.setLong(1, from);
-                        dataPointsPreparedStatement.setLong(2, to);
-                        try (ResultSet dataPointsResultSet = dataPointsPreparedStatement.executeQuery()) {
-                            signalData = newSignalData(signalName, frequency, dataPointsResultSet);
-                        }
+        try (Connection connection = connectionManager.getConnection())
+        {
+            if (tableExists(signalName, connection))
+            {
+                String dataPointsQuery = String.format(GET_SIGNAL_DATA_QUERY, signalName);
+                try (PreparedStatement dataPointsPreparedStatement = connection.prepareStatement(dataPointsQuery))
+                {
+                    dataPointsPreparedStatement.setLong(1, from);
+                    dataPointsPreparedStatement.setLong(2, to);
+                    try (ResultSet dataPointsResultSet = dataPointsPreparedStatement.executeQuery())
+                    {
+                        signalDataList = newSignalDataList(signalName, dataPointsResultSet);
                     }
-                } else {
-                    LOG.error("Input signal name '{}' is not supported.", signalName);
-                    throw new SignalDataDBException();
                 }
+            }
+            else
+            {
+                LOG.error("Input signal name '{}' is not supported.", signalName);
+                throw new SignalDataDBException();
             }
         }
         catch (SQLException e) {
@@ -122,7 +119,7 @@ public class SignalDataRepository {
             throw new SignalDataDBException(e);
         }
 
-        return signalData;
+        return signalDataList;
     }
 
     public List<SignalDataRow> getAllSignalDataRow(String signalName, long from, long to) throws SignalDataDBException {
@@ -360,23 +357,16 @@ public class SignalDataRepository {
         return aggregatedScoreRows;
     }
 
-    private SignalData newSignalData(String signalName, double frequency, ResultSet rs) throws SQLException {
-        long timeInMS = -1;
-        List<Double> dataPoints = new ArrayList<>();
+    private SignalDataList newSignalDataList(String signalName, ResultSet rs) throws SQLException {
+        List<Long> timestamps = new ArrayList<>();
+        List<Double> values = new ArrayList<>();
 
         while (rs.next()) {
-            if (timeInMS == -1) {
-                timeInMS = rs.getLong(1);
-            }
-            dataPoints.add(rs.getDouble(2));
+            timestamps.add(rs.getLong(1));
+            values.add(rs.getDouble(2));
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
-        // date string will be returned as a UTC time
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String timestamp = simpleDateFormat.format(new Date(timeInMS));
-
-        return new SignalData(signalName, frequency, timestamp, dataPoints);
+        return new SignalDataList(signalName, timestamps, values);
     }
 
     private SignalDataRow newSignalDataRow(ResultSet rs) throws SQLException {
