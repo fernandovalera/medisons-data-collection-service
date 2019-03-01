@@ -10,12 +10,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class QueryTest {
+public class QueryTest {
 
     private static final String SPO2_NAME = "spo2";
     private static final String BP_NAME = "bp";
@@ -41,16 +44,37 @@ class QueryTest {
     }
 
     @Test
-    void allSignalData() throws Exception {
-        List<String> signalTableNames = new ArrayList<>();
-        signalTableNames.add(SPO2_NAME);
-        when(signalDataRepository.getSignalTableNamesFromBaseName(SPO2_NAME)).thenReturn(signalTableNames);
-        query.allSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+    void allSignalData_givenSingleVital_retrieveOneSignalData() throws Exception {
+        List<String> spo2SignalTableNames = new ArrayList<>();
+        spo2SignalTableNames.add(SPO2_NAME);
+        when(signalDataRepository.getSignalTableNamesFromBaseName(SPO2_NAME)).thenReturn(spo2SignalTableNames);
+        when(signalDataRepository.getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2))
+                .thenReturn(mock(SignalDataList.class));
+
+        List<SignalDataList> result = query.allSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+
         verify(signalDataRepository).getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        assertEquals(1, result.size());
     }
-  
+
     @Test
-    void multiSignalData() throws Exception {
+    void allSignalData_givenDoubleVital_retrieveTwoSignalData() throws Exception {
+        List<String> bpSignalTableNames = new ArrayList<>();
+        bpSignalTableNames.add(BP_DIA_NAME);
+        bpSignalTableNames.add(BP_SYS_NAME);
+        when(signalDataRepository.getSignalTableNamesFromBaseName(BP_NAME)).thenReturn(bpSignalTableNames);
+        when(signalDataRepository.getAllSignalData(anyString(), eq(TIMESTAMP_1), eq(TIMESTAMP_2)))
+                .thenReturn(mock(SignalDataList.class));
+
+        List<SignalDataList> result = query.allSignalData(BP_NAME, TIMESTAMP_1, TIMESTAMP_2);
+
+        verify(signalDataRepository).getAllSignalData(BP_DIA_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getAllSignalData(BP_SYS_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void multiSignalData_givenSingleAndDoubleVital_retrieveThreeSignalData() throws Exception {
         List<String> spo2SignalTableNames = new ArrayList<>();
         spo2SignalTableNames.add(SPO2_NAME);
         List<String> bpSignalTableNames = new ArrayList<>();
@@ -59,16 +83,18 @@ class QueryTest {
         when(signalDataRepository.getSignalTableNamesFromBaseName(anyString()))
                 .thenReturn(spo2SignalTableNames)
                 .thenReturn(bpSignalTableNames);
+        when(signalDataRepository.getAllSignalData(anyString(), eq(TIMESTAMP_1), eq(TIMESTAMP_2)))
+                .thenReturn(mock(SignalDataList.class));
 
         List<String> expectedNames = new ArrayList<>();
         expectedNames.add(SPO2_NAME);
         expectedNames.add(BP_NAME);
-
-        query.multiSignalData(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
+        List<SignalDataList> result = query.multiSignalData(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
 
         verify(signalDataRepository).getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
         verify(signalDataRepository).getAllSignalData(BP_DIA_NAME, TIMESTAMP_1, TIMESTAMP_2);
         verify(signalDataRepository).getAllSignalData(BP_SYS_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        assertEquals(3, result.size());
     }
 
     @Test

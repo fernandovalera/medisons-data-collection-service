@@ -156,7 +156,7 @@ public class SignalDataRepositoryTest {
             fail();
         }
 
-        List<Long> timestamps =new ArrayList<>();
+        List<Long> timestamps = new ArrayList<>();
         timestamps.add(SPO2_TIMESTAMP_1);
         timestamps.add(SPO2_TIMESTAMP_2);
 
