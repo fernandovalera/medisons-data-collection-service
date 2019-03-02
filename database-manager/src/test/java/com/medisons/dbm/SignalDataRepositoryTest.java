@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,7 +78,9 @@ class SignalDataRepositoryTest {
     private static Flyway flyway;
 
     @Spy
-    private static Connection connection;
+    private Connection connection;
+
+    private static ConnectionManager connectionManager;
 
     private SignalDataRepository signalDataRepository;
 
@@ -88,7 +91,7 @@ class SignalDataRepositoryTest {
         dataSource.setUser(USER);
         dataSource.setPassword(PASSWORD);
         dataSource.setURL(URL);
-        connection = dataSource.getConnection();
+        Connection connection = dataSource.getConnection();
 
         try {
             connection.prepareStatement(String.format("CREATE DATABASE %s", DB)).executeUpdate();
@@ -99,19 +102,23 @@ class SignalDataRepositoryTest {
 
         dataSource.setDatabaseName(DB);
         flyway = Flyway.configure().schemas(DB).dataSource(dataSource).load();
+
+        connectionManager = new HikariConnectionManager(URL + DB + "?serverTimezone=UTC");
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws SQLException {
         flyway.clean();
         flyway.migrate();
 
-        signalDataRepository = new SignalDataRepository(connection);
+        signalDataRepository = new SignalDataRepository(connectionManager);
+        connection = spy(connectionManager.getConnection());
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws SQLException {
         signalDataRepository = null;
+        connection.close();
     }
 
     @Test
@@ -234,7 +241,7 @@ class SignalDataRepositoryTest {
         long expectedTimeStamp1InMS = calendar.getTimeInMillis();
         long expectedTimeStamp2InMS = expectedTimeStamp1InMS + 1000L;
 
-        ResultSet rs = connection.prepareStatement("SELECT timestamp, value FROM spo2 ").executeQuery();
+        ResultSet rs = connection.prepareStatement("SELECT timestamp, value FROM spo2").executeQuery();
         assertTrue(rs.next());
         assertEquals(expectedTimeStamp1InMS, rs.getLong(1));
         assertEquals(SPO2_VALUE_1, rs.getDouble(2));

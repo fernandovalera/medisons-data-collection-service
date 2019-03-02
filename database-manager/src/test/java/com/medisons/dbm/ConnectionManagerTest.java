@@ -10,12 +10,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class ConnectionManagerTest {
 
-    private String jdbcUrl = "jdbc:mysql://localhost:3306/";
+    private String jdbcUrl = "jdbc:mysql://localhost:3306/?serverTimezone=UTC";
 
     @Test
     void getConnection_givenValidJdbcUrl_returnValidConnection() {
         try {
-            Connection connection = ConnectionManager.getConnection(jdbcUrl);
+            Connection connection = (new ConnectionManager(jdbcUrl)).getConnection();
             assertTrue(connection.isValid(1));
         }
         catch (SQLException e) {
@@ -26,7 +26,7 @@ public class ConnectionManagerTest {
     @Test
     void getConnection_givenInvalidJdbcUrl_returnNullConnection() {
         try {
-            ConnectionManager.getConnection("invalidJdbcUrl");
+            (new ConnectionManager("invalidJdbcUrl")).getConnection();
             fail();
         } catch (SQLException ignored) { }
     }

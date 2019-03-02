@@ -12,13 +12,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 
 @WebServlet(name = "GraphQLServlet", urlPatterns = {"graphql"}, loadOnStartup = 1)
 public class GraphQLServlet extends SimpleGraphQLHttpServlet {
 
     private static SignalDataRepository signalDataRepository;
-    private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/signals";
+    private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/signals?serverTimezone=UTC";
 
     // Response header keys and values
     private static final String ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY = "Access-Control-Allow-Origin";
@@ -28,12 +27,9 @@ public class GraphQLServlet extends SimpleGraphQLHttpServlet {
             "apollographql-client-name,apollographql-client-version,content-type";
 
     static {
-        try {
-            signalDataRepository = new SignalDataRepository(ConnectionManager.getConnection(CONNECTION_URL));
-        } catch (SQLException e) {
-            // Without a connection to the DB, quit the program.
-            System.exit(1);
-        }
+        ConnectionManager connectionManager = new HikariConnectionManager(CONNECTION_URL);
+
+        signalDataRepository = new SignalDataRepository(connectionManager);
     }
 
     public GraphQLServlet() {

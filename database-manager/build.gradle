@@ -51,5 +51,7 @@ dependencies {
 
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
 
+    compile group: 'com.zaxxer', name: 'HikariCP', version: '2.7.8'
+
     testCompile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
 }
