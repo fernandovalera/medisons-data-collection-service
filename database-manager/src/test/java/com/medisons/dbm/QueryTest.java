@@ -126,4 +126,10 @@ public class QueryTest {
         query.lastSignalScoreRowsInRange(TIMESTAMP_1, TIMESTAMP_2);
         verify(signalDataRepository).getLastSignalScoreRowsInRange(TIMESTAMP_1, TIMESTAMP_2);
     }
+
+    @Test
+    void aggregatedScoreRows() throws Exception {
+        query.aggregatedScoreRows(TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getAggregatedScoreRowList(TIMESTAMP_1, TIMESTAMP_2);
+    }
 }

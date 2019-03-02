@@ -335,8 +335,14 @@ public class SignalDataRepository {
         }
     }
 
-    public List<AggregatedScoreRow> getAllAggregatedScoreRow(long from, long to) throws SignalDataDBException {
-        List<AggregatedScoreRow> aggregatedScoreRows = new ArrayList<>();
+    public AggregatedScoreRowList getAggregatedScoreRowList(long from, long to) throws SignalDataDBException {
+        List<Long> timestamp = new ArrayList<>();
+        List<Double> value = new ArrayList<>();
+        List<Double> spo2 = new ArrayList<>();
+        List<Double> ecg = new ArrayList<>();
+        List<Double> bp = new ArrayList<>();
+        List<Double> resp = new ArrayList<>();
+        List<Double> temp = new ArrayList<>();
 
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_AGGREGATED_SCORE_QUERY)
@@ -345,7 +351,15 @@ public class SignalDataRepository {
             preparedStatement.setLong(2, to);
             try (ResultSet rs = preparedStatement.executeQuery()) {
                 while (rs.next()) {
-                    aggregatedScoreRows.add(newAggregatedScoreRow(rs));
+                    AggregatedScoreRow aggregatedScoreRow = newAggregatedScoreRow(rs);
+
+                    timestamp.add(aggregatedScoreRow.getTimestamp());
+                    value.add(aggregatedScoreRow.getValue());
+                    spo2.add(aggregatedScoreRow.getSpo2());
+                    ecg.add(aggregatedScoreRow.getEcg());
+                    bp.add(aggregatedScoreRow.getBp());
+                    resp.add(aggregatedScoreRow.getResp());
+                    temp.add(aggregatedScoreRow.getTemp());
                 }
             }
         }
@@ -354,7 +368,7 @@ public class SignalDataRepository {
             throw new SignalDataDBException(e);
         }
 
-        return aggregatedScoreRows;
+        return new AggregatedScoreRowList(timestamp, value, spo2, ecg, bp, resp, temp);
     }
 
     private SignalDataList newSignalDataList(String signalName, ResultSet rs) throws SQLException {
