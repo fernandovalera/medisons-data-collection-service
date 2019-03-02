@@ -1,5 +1,7 @@
 package com.medisons.dbm;
 
+import java.util.Objects;
+
 public class AggregatedScoreRow {
 
     private final long timestamp;
@@ -47,5 +49,19 @@ public class AggregatedScoreRow {
 
     public Double getTemp() {
         return temp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AggregatedScoreRow that = (AggregatedScoreRow) o;
+        return timestamp == that.timestamp &&
+                Double.compare(that.value, value) == 0 &&
+                Objects.equals(spo2, that.spo2) &&
+                Objects.equals(ecg, that.ecg) &&
+                Objects.equals(bp, that.bp) &&
+                Objects.equals(resp, that.resp) &&
+                Objects.equals(temp, that.temp);
     }
 }
