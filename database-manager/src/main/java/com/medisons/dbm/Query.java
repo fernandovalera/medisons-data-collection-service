@@ -13,37 +13,22 @@ public class Query implements GraphQLQueryResolver {
         this.signalDataRepository = signalDataRepository;
     }
 
-    public List<SignalDataList> multiSignalData(List<String> signalNames, long from, long to) throws Exception {
-        List<SignalDataList> multiSignalDataList = new ArrayList<>();
+    public List<SignalDataRowList> multiSignalDataRows(List<String> signalNames, long from, long to) throws Exception {
+        List<SignalDataRowList> multiSignalDataList = new ArrayList<>();
         for (String signalName : signalNames)
         {
-            multiSignalDataList.addAll(this.allSignalData(signalName, from, to));
+            multiSignalDataList.addAll(this.signalDataRows(signalName, from, to));
         }
         return multiSignalDataList;
     }
 
-    public List<SignalDataList> allSignalData(String baseSignalName, long from, long to) throws Exception {
+    public List<SignalDataRowList> signalDataRows(String baseSignalName, long from, long to) throws Exception {
         List<String> signalNames = signalDataRepository.getSignalTableNamesFromBaseName(baseSignalName);
-        List<SignalDataList> signalDataList = new ArrayList<>();
+        List<SignalDataRowList> signalDataList = new ArrayList<>();
         for (String signalName : signalNames) {
-            signalDataList.add(signalDataRepository.getAllSignalData(signalName, from, to));
+            signalDataList.add(signalDataRepository.getSignalDataRowList(signalName, from, to));
         }
         return signalDataList;
-    }
-
-    public List<SignalDataRowList> multiSignalDataRow(List<String> signalNames, long from, long to) throws Exception {
-        List<SignalDataRowList> multiSignalDataRows = new ArrayList<>();
-        for (String signalName : signalNames)
-        {
-            multiSignalDataRows.add(
-                    new SignalDataRowList(signalName, signalDataRepository.getAllSignalDataRow(signalName, from, to))
-            );
-        }
-        return multiSignalDataRows;
-    }
-
-    public List<SignalDataRow> signalDataRow(String signalName, long from, long to) throws Exception {
-        return signalDataRepository.getAllSignalDataRow(signalName, from, to);
     }
 
     public List<SignalScoreRow> signalScoreData(String signalName, long from, long to) throws Exception {

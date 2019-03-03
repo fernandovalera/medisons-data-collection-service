@@ -31,7 +31,6 @@ public class SignalDataRepository {
     private static final String GET_LAST_SCORE_IN_RANGE_QUERY = "SELECT * FROM %s where timestampTo BETWEEN ? AND ? ORDER BY timestampTo DESC LIMIT 1";
     private static final String GET_AGGREGATED_SCORE_QUERY = "SELECT timestamp, value, spo2_score, ecg_score, bp_score, resp_rate_score, temperature_score FROM"
             + " aggregated_score WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
-
     private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
     private static final String VALUE_COLUMN = "value";
     private static final String SCORE_FROM_COLUMN = "timestampFrom";
@@ -53,10 +52,11 @@ public class SignalDataRepository {
     private boolean tableExists(String signalName, Connection connection) {
         try {
             DatabaseMetaData dbm = connection.getMetaData();
-            ResultSet tables = dbm.getTables(connection.getCatalog(), null, signalName,
-                                             new String[] {"TABLE"});
-            if (tables.next()) {
-                return true;
+            try (ResultSet tables = dbm.getTables(connection.getCatalog(), null, signalName,
+                    new String[] {"TABLE"})) {
+                if (tables.next()) {
+                    return true;
+                }
             }
         }
         catch (SQLException e) {
@@ -68,17 +68,16 @@ public class SignalDataRepository {
     public List<String> getSignalTableNamesFromBaseName(String baseSignalName) throws SignalDataDBException {
         List<String> signalNamesList = new ArrayList<>();
 
-        try {
-            Connection connection = connectionManager.getConnection();
-
+        try (Connection connection = connectionManager.getConnection()){
             String tableNamePattern = baseSignalName + "%";
             DatabaseMetaData dbm = connection.getMetaData();
-            ResultSet tables = dbm.getTables(connection.getCatalog(), null, tableNamePattern,
-                                             new String[] {"TABLE"});
-            while (tables.next()) {
-                String tableName = tables.getString("TABLE_NAME");
-                if (!tableName.contains("score")) {
-                    signalNamesList.add(tableName);
+            try (ResultSet tables = dbm.getTables(connection.getCatalog(), null, tableNamePattern,
+                    new String[] {"TABLE"})) {
+                while (tables.next()) {
+                    String tableName = tables.getString("TABLE_NAME");
+                    if (!tableName.contains("score")) {
+                        signalNamesList.add(tableName);
+                    }
                 }
             }
         }
@@ -90,13 +89,29 @@ public class SignalDataRepository {
         return signalNamesList;
     }
 
-    public SignalDataList getAllSignalData(String signalName, long from, long to) throws SignalDataDBException {
-        SignalDataList signalDataList;
+    public SignalDataRowList getSignalDataRowList(String signalName, long from, long to) throws SignalDataDBException {
+        SignalDataRowList signalDataList;
 
         try (Connection connection = connectionManager.getConnection())
         {
             if (tableExists(signalName, connection))
             {
+                Double frequency;
+                try (PreparedStatement frequencyPreparedStatement =
+                             connection.prepareStatement(GET_SIGNAL_FREQUENCY_QUERY))
+                {
+                    frequencyPreparedStatement.setString(1, signalName);
+                    try (ResultSet frequencyResultSet = frequencyPreparedStatement.executeQuery())
+                    {
+                        frequencyResultSet.next();
+                        frequency = frequencyResultSet.getDouble("frequency");
+                    }
+                }
+                catch (SQLException e) {
+                    LOG.error("Failed to get frequency for signal name '{}'", signalName);
+                    throw new SignalDataDBException(e);
+                }
+
                 String dataPointsQuery = String.format(GET_SIGNAL_DATA_QUERY, signalName);
                 try (PreparedStatement dataPointsPreparedStatement = connection.prepareStatement(dataPointsQuery))
                 {
@@ -104,8 +119,12 @@ public class SignalDataRepository {
                     dataPointsPreparedStatement.setLong(2, to);
                     try (ResultSet dataPointsResultSet = dataPointsPreparedStatement.executeQuery())
                     {
-                        signalDataList = newSignalDataList(signalName, dataPointsResultSet);
+                        signalDataList = newSignalDataList(signalName, frequency, dataPointsResultSet);
                     }
+                }
+                catch (SQLException e) {
+                    LOG.error("Failed to get data for signal name '{}'", signalName);
+                    throw new SignalDataDBException(e);
                 }
             }
             else
@@ -120,34 +139,6 @@ public class SignalDataRepository {
         }
 
         return signalDataList;
-    }
-
-    public List<SignalDataRow> getAllSignalDataRow(String signalName, long from, long to) throws SignalDataDBException {
-        List<SignalDataRow> allSignalDataRow = new ArrayList<>();
-        String query = String.format(GET_SIGNAL_DATA_QUERY, signalName);
-
-        try (Connection connection = connectionManager.getConnection()) {
-            if (tableExists(signalName, connection)) {
-                try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                    preparedStatement.setLong(1, from);
-                    preparedStatement.setLong(2, to);
-                    try (ResultSet rs = preparedStatement.executeQuery()) {
-                        while (rs.next()) {
-                            allSignalDataRow.add(newSignalDataRow(rs));
-                        }
-                    }
-                }
-            } else {
-                LOG.error("Input signal name '{}' is not supported.", signalName);
-                throw new SignalDataDBException();
-            }
-        }
-        catch (SQLException e) {
-            LOG.error(e.getMessage());
-            throw new SignalDataDBException(e);
-        }
-
-        return allSignalDataRow;
     }
 
     public void saveSignalData(String signalName, SignalData signalData) throws SignalDataDBException {
@@ -371,20 +362,16 @@ public class SignalDataRepository {
         return new AggregatedScoreRowList(timestamp, value, spo2, ecg, bp, resp, temp);
     }
 
-    private SignalDataList newSignalDataList(String signalName, ResultSet rs) throws SQLException {
+    private SignalDataRowList newSignalDataList(String signalName, Double frequency, ResultSet rs) throws SQLException {
         List<Long> timestamps = new ArrayList<>();
         List<Double> values = new ArrayList<>();
 
         while (rs.next()) {
-            timestamps.add(rs.getLong(1));
-            values.add(rs.getDouble(2));
+            timestamps.add(rs.getLong(DATA_TIMESTAMP_COLUMN));
+            values.add(rs.getDouble(VALUE_COLUMN));
         }
 
-        return new SignalDataList(signalName, timestamps, values);
-    }
-
-    private SignalDataRow newSignalDataRow(ResultSet rs) throws SQLException {
-        return new SignalDataRow(rs.getLong(DATA_TIMESTAMP_COLUMN), rs.getDouble(VALUE_COLUMN));
+        return new SignalDataRowList(signalName, frequency, timestamps, values);
     }
 
     private SignalScoreRow newSignalScoreRow(ResultSet rs) throws SQLException {

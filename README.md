@@ -29,7 +29,7 @@ Windows:
 1. Install MySQL Server 8.+ or MySQL Server 5.7.+
     - The root password should match the password in ConnectionManager.
 2. Create signals database:
-    > `mysql -uroot -c "CREATE DATABASE signals"`
+    > `mysql -uroot -e "CREATE DATABASE signals"`
 3. Run baseline database migration:
     > `mysql -uroot signals < database-manager/src/main/resources/db/migration/V1__Create_all_tables.sql`
 ## Running the DBM

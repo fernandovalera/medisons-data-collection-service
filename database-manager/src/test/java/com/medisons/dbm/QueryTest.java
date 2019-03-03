@@ -48,12 +48,12 @@ public class QueryTest {
         List<String> spo2SignalTableNames = new ArrayList<>();
         spo2SignalTableNames.add(SPO2_NAME);
         when(signalDataRepository.getSignalTableNamesFromBaseName(SPO2_NAME)).thenReturn(spo2SignalTableNames);
-        when(signalDataRepository.getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2))
-                .thenReturn(mock(SignalDataList.class));
+        when(signalDataRepository.getSignalDataRowList(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2))
+                .thenReturn(mock(SignalDataRowList.class));
 
-        List<SignalDataList> result = query.allSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        List<SignalDataRowList> result = query.signalDataRows(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
 
-        verify(signalDataRepository).getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalDataRowList(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
         assertEquals(1, result.size());
     }
 
@@ -63,13 +63,13 @@ public class QueryTest {
         bpSignalTableNames.add(BP_DIA_NAME);
         bpSignalTableNames.add(BP_SYS_NAME);
         when(signalDataRepository.getSignalTableNamesFromBaseName(BP_NAME)).thenReturn(bpSignalTableNames);
-        when(signalDataRepository.getAllSignalData(anyString(), eq(TIMESTAMP_1), eq(TIMESTAMP_2)))
-                .thenReturn(mock(SignalDataList.class));
+        when(signalDataRepository.getSignalDataRowList(anyString(), eq(TIMESTAMP_1), eq(TIMESTAMP_2)))
+                .thenReturn(mock(SignalDataRowList.class));
 
-        List<SignalDataList> result = query.allSignalData(BP_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        List<SignalDataRowList> result = query.signalDataRows(BP_NAME, TIMESTAMP_1, TIMESTAMP_2);
 
-        verify(signalDataRepository).getAllSignalData(BP_DIA_NAME, TIMESTAMP_1, TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalData(BP_SYS_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalDataRowList(BP_DIA_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalDataRowList(BP_SYS_NAME, TIMESTAMP_1, TIMESTAMP_2);
         assertEquals(2, result.size());
     }
 
@@ -83,36 +83,18 @@ public class QueryTest {
         when(signalDataRepository.getSignalTableNamesFromBaseName(anyString()))
                 .thenReturn(spo2SignalTableNames)
                 .thenReturn(bpSignalTableNames);
-        when(signalDataRepository.getAllSignalData(anyString(), eq(TIMESTAMP_1), eq(TIMESTAMP_2)))
-                .thenReturn(mock(SignalDataList.class));
+        when(signalDataRepository.getSignalDataRowList(anyString(), eq(TIMESTAMP_1), eq(TIMESTAMP_2)))
+                .thenReturn(mock(SignalDataRowList.class));
 
         List<String> expectedNames = new ArrayList<>();
         expectedNames.add(SPO2_NAME);
         expectedNames.add(BP_NAME);
-        List<SignalDataList> result = query.multiSignalData(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
+        List<SignalDataRowList> result = query.multiSignalDataRows(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
 
-        verify(signalDataRepository).getAllSignalData(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalData(BP_DIA_NAME, TIMESTAMP_1, TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalData(BP_SYS_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalDataRowList(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalDataRowList(BP_DIA_NAME, TIMESTAMP_1, TIMESTAMP_2);
+        verify(signalDataRepository).getSignalDataRowList(BP_SYS_NAME, TIMESTAMP_1, TIMESTAMP_2);
         assertEquals(3, result.size());
-    }
-
-    @Test
-    void multiSignalDataRow() throws Exception {
-        List<String> expectedNames = new ArrayList<>();
-        expectedNames.add(SPO2_NAME);
-        expectedNames.add(BP_NAME);
-
-        query.multiSignalDataRow(expectedNames, TIMESTAMP_1, TIMESTAMP_2);
-
-        verify(signalDataRepository).getAllSignalDataRow(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalDataRow(BP_NAME, TIMESTAMP_1, TIMESTAMP_2);
-    }
-
-    @Test
-    void signalDataRow() throws Exception {
-        query.signalDataRow(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
-        verify(signalDataRepository).getAllSignalDataRow(SPO2_NAME, TIMESTAMP_1, TIMESTAMP_2);
     }
 
     @Test

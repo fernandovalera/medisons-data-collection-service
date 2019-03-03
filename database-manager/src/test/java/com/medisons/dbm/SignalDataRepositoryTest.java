@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -162,7 +163,8 @@ public class SignalDataRepositoryTest {
         preparedStatement1.setDouble(2, SPO2_FREQUENCY);
         preparedStatement1.executeUpdate();
 
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO spo2 VALUES (?, ?), (?, ?), (?, ?)");
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO spo2 VALUES (?, ?), (?, ?), (?, ?)");
         preparedStatement.setLong(1, SPO2_TIMESTAMP_1);
         preparedStatement.setDouble(2, SPO2_VALUE_1);
         preparedStatement.setLong(3, SPO2_TIMESTAMP_2);
@@ -171,9 +173,10 @@ public class SignalDataRepositoryTest {
         preparedStatement.setDouble(6, SPO2_VALUE_3);
         preparedStatement.executeUpdate();
 
-        SignalDataList actualSignalDataList = null;
+        SignalDataRowList actualSignalDataRowList = null;
         try {
-            actualSignalDataList = signalDataRepository.getAllSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+            actualSignalDataRowList = signalDataRepository.getSignalDataRowList(
+                    SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
         } catch (Exception e) {
             fail();
         }
@@ -185,15 +188,16 @@ public class SignalDataRepositoryTest {
         List<Double> values = new ArrayList<>();
         values.add(SPO2_VALUE_1);
         values.add(SPO2_VALUE_2);
-        SignalDataList expectedSignalDataList = new SignalDataList(SPO2_NAME, timestamps, values);
+        SignalDataRowList expectedSignalDataRowList =
+                new SignalDataRowList(SPO2_NAME, SPO2_FREQUENCY, timestamps, values);
 
-        assertEquals(expectedSignalDataList, actualSignalDataList);
+        assertEquals(expectedSignalDataRowList, actualSignalDataRowList);
     }
 
     @Test
     void getAllSignalData_givenInvalidSignalName_throwsException() {
         try {
-            signalDataRepository.getAllSignalData(INVALID_SIGNAL_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+            signalDataRepository.getSignalDataRowList(INVALID_SIGNAL_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
             fail();
         } catch (Exception ignored) {
 
@@ -204,53 +208,7 @@ public class SignalDataRepositoryTest {
     void getAllSignalData_givenDBError_throwsException() {
         try {
             when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
-            signalDataRepository.getAllSignalData(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
-            fail();
-        } catch (Exception ignored) {
-
-        }
-    }
-
-    @Test
-    void getAllSignalDataRow_givenSPO2DataQuery_returnTwoItems() throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO spo2 VALUES (?, ?), (?, ?), (?, ?)");
-        preparedStatement.setLong(1, SPO2_TIMESTAMP_1);
-        preparedStatement.setDouble(2, SPO2_VALUE_1);
-        preparedStatement.setLong(3, SPO2_TIMESTAMP_2);
-        preparedStatement.setDouble(4, SPO2_VALUE_2);
-        preparedStatement.setLong(5, SPO2_TIMESTAMP_3);
-        preparedStatement.setDouble(6, SPO2_VALUE_3);
-        preparedStatement.executeUpdate();
-
-        List<SignalDataRow> result = null;
-        try {
-            result = signalDataRepository.getAllSignalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
-        } catch (Exception e) {
-            fail();
-        }
-
-        assertEquals(2, result.size());
-        assertEquals(SPO2_TIMESTAMP_1, result.get(0).getTimestamp());
-        assertEquals(SPO2_VALUE_1, result.get(0).getValue());
-        assertEquals(SPO2_TIMESTAMP_2, result.get(1).getTimestamp());
-        assertEquals(SPO2_VALUE_2, result.get(1).getValue());
-    }
-
-    @Test
-    void getAllSignalDataRow_givenInvalidSignalName_throwsException() {
-        try {
-            signalDataRepository.getAllSignalDataRow(INVALID_SIGNAL_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
-            fail();
-        } catch (Exception ignored) {
-
-        }
-    }
-
-    @Test
-    void getAllSignalDataRow_givenDBError_throwsException() {
-        try {
-            when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
-            signalDataRepository.getAllSignalDataRow(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
+            signalDataRepository.getSignalDataRowList(SPO2_NAME, SPO2_TIMESTAMP_1, SPO2_TIMESTAMP_2);
             fail();
         } catch (Exception ignored) {
 
