@@ -43,6 +43,13 @@ type AggregatedScoreRowList {
     temp: [Float]!
 }
 
+type BackgroundData {
+    age: Int
+    weight: Int
+    height: Int
+    sex: String
+}
+
 type Query {
     signalDataRows(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRowList]
     multiSignalDataRows(names: [String!]!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRowList]
@@ -51,12 +58,15 @@ type Query {
     lastSignalScoreRowsInRange(from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRowListItem]
 
     aggregatedScoreRows(from: Long = 0, to: Long = 9223372036854775807) : AggregatedScoreRowList
+
+    backgroundData : BackgroundData
 }
 
 type Mutation {
     storeSignalData(name: String!, frequency: Float!, timestamp: String!, dataPoints: [Float!]!): SignalData
     storeSignalScore(name: String!, from: Long!, to: Long!, value: Float!): SignalScoreRow
     storeAggregatedScore(timestamp: Long!, value: Float!, spo2: Float, ecg: Float, bp: Float, resp: Float, temp: Float) : AggregatedScoreRow
+    storeBackgroundData(age: Int, weight: Int, height: Int, sex: String) : BackgroundData
 }
 
 schema {
