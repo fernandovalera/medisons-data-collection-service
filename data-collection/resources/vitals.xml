@@ -5,9 +5,14 @@
     <DataFile>resources/Sample_Patient_O2_Data_ASCII.txt</DataFile>
   </Vital>
   <Vital>
-    <Name>bp</Name>
+    <Name>bp_dia</Name>
     <Frequency>25</Frequency>
-    <DataFile>resources/Sample_Patient_BP_Data_ASCII.txt</DataFile>
+    <DataFile>resources/Sample_Patient_BP_DIA_Data_ASCII.txt</DataFile>
+  </Vital>
+  <Vital>
+    <Name>bp_sys</Name>
+    <Frequency>25</Frequency>
+    <DataFile>resources/Sample_Patient_BP_SYS_Data_ASCII.txt</DataFile>
   </Vital>
   <Vital>
     <Name>ecg</Name>
