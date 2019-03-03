@@ -75,6 +75,10 @@ public class SignalDataRepositoryTest {
     private static final Double AGGREGATE_RESP_3 = null;
     private static final Double AGGREGATE_TEMP_3 = null;
 
+    private static final Integer BACKGROUND_AGE = 25;
+    private static final Integer BACKGROUND_WEIGHT = 65;
+    private static final Integer BACKGROUND_HEIGHT = 170;
+    private static final String BACKGROUND_SEX = "M";
 
     private static final String INVALID_SIGNAL_NAME = "yo";
 
@@ -601,6 +605,101 @@ public class SignalDataRepositoryTest {
 
         }
     }
+
+    @Test
+    void saveBackgroundData_nullValues() throws SQLException {
+        BackgroundData backgroundData = new BackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, null, null);
+
+        try {
+            signalDataRepository.saveBackgroundData(backgroundData);
+        } catch (Exception e) {
+            fail();
+        }
+
+        ResultSet rs = connection.prepareStatement(
+                "SELECT age, weight, height, sex FROM background_data"
+        ).executeQuery();
+
+        assertTrue(rs.next());
+        assertEquals((int)BACKGROUND_AGE, rs.getInt(1));
+        assertEquals((int)BACKGROUND_WEIGHT, rs.getInt(2));
+        rs.getInt(3);
+        assertTrue(rs.wasNull());
+        assertNull(rs.getString(4));
+    }
+
+    @Test
+    void saveBackgroundData_onlyOneRowSaved() throws SQLException {
+        BackgroundData backgroundData1 = new BackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, null, null);
+        BackgroundData backgroundData2 = new BackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, BACKGROUND_HEIGHT, BACKGROUND_SEX);
+
+        try {
+            signalDataRepository.saveBackgroundData(backgroundData1);
+            signalDataRepository.saveBackgroundData(backgroundData2);
+        } catch (Exception e) {
+            fail();
+        }
+
+        ResultSet rs = connection.prepareStatement(
+                "SELECT age, weight, height, sex FROM background_data"
+        ).executeQuery();
+
+        assertTrue(rs.next());
+        assertEquals((int)BACKGROUND_AGE, rs.getInt(1));
+        assertEquals((int)BACKGROUND_WEIGHT, rs.getInt(2));
+        assertEquals((int)BACKGROUND_HEIGHT, rs.getInt(3));
+        assertEquals(BACKGROUND_SEX, rs.getString(4));
+        assertFalse(rs.next());
+    }
+
+    @Test
+    void saveBackgroundData_throwsException() {
+        BackgroundData backgroundData = new BackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, BACKGROUND_HEIGHT, BACKGROUND_SEX);
+        try {
+            when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
+            signalDataRepository.saveBackgroundData(backgroundData);
+            fail();
+        } catch (Exception ignored) {
+
+        }
+    }
+
+    @Test
+    void getBackgroundData() throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+                "INSERT INTO background_data VALUES (1, ?, ?, ?, ?)"
+        );
+        preparedStatement.setInt(1, BACKGROUND_AGE);
+        preparedStatement.setInt(2, BACKGROUND_WEIGHT);
+        preparedStatement.setInt(3, BACKGROUND_HEIGHT);
+        preparedStatement.setString(4, BACKGROUND_SEX);
+        preparedStatement.executeUpdate();
+
+        BackgroundData result = null;
+        try {
+            result = signalDataRepository.getBackgroundData();
+        }
+        catch (Exception e) {
+            fail();
+        }
+
+        assertEquals(BACKGROUND_AGE, result.getAge());
+        assertEquals(BACKGROUND_WEIGHT, result.getWeight());
+        assertEquals(BACKGROUND_HEIGHT, result.getHeight());
+        assertEquals(BACKGROUND_SEX, result.getSex());
+    }
+
+    @Test
+    void getBackgroundData_throwsException() {
+        try {
+            when(connection.prepareStatement(anyString())).thenThrow(SQLException.class);
+            signalDataRepository.getBackgroundData();
+            fail();
+        } catch (Exception ignored) {
+
+        }
+    }
+
 
     private SignalScoreRowListItem getSignalScoreRowByName(String signalName, List<SignalScoreRowListItem> scores) {
         for (SignalScoreRowListItem score : scores) {

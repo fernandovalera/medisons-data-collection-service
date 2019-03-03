@@ -40,6 +40,10 @@ class MutationTest {
     private static final double AGGREGATE_RESP = 2.0;
     private static final double AGGREGATE_TEMP = 1.0;
 
+    private static final int BACKGROUND_AGE = 25;
+    private static final int BACKGROUND_WEIGHT = 65;
+    private static final int BACKGROUND_HEIGHT = 170;
+    private static final String BACKGROUND_SEX = "F";
 
     private Mutation mutation;
 
@@ -80,5 +84,13 @@ class MutationTest {
                 AGGREGATE_ECG, AGGREGATE_BP, AGGREGATE_RESP, AGGREGATE_TEMP);
         assertEquals(expectedAggregatedScoreRow, actualAggregatedScoreRow);
         verify(signalDataRepository).saveAggregatedScore(actualAggregatedScoreRow);
+    }
+
+    @Test
+    void storeBackgroundData() throws Exception {
+        BackgroundData expectedBackgroundData = new BackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, BACKGROUND_HEIGHT, BACKGROUND_SEX);
+        BackgroundData actualBackgroundData = mutation.storeBackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, BACKGROUND_HEIGHT, BACKGROUND_SEX);
+        assertEquals(expectedBackgroundData, actualBackgroundData);
+        verify(signalDataRepository).saveBackgroundData(actualBackgroundData);
     }
 }
