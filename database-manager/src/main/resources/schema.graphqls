@@ -5,14 +5,11 @@ type SignalData {
     dataPoints: [Float!]!
 }
 
-type SignalDataRow {
-    timestamp: Long!
-    value: Float!
-}
-
 type SignalDataRowList {
     name: String!
-    rows: [SignalDataRow]!
+    frequency: Float!
+    timestamps: [Long]!
+    values: [Float]!
 }
 
 type SignalScoreRow {
@@ -47,12 +44,12 @@ type AggregatedScoreRowList {
 }
 
 type Query {
-    allSignalData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : SignalData
-    multiSignalData(names: [String!]!, from: Long = 0, to: Long = 9223372036854775807) : [SignalData]
-    multiSignalDataRow(names: [String!]!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRowList]
-    signalDataRow(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRow]
+    signalDataRows(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRowList]
+    multiSignalDataRows(names: [String!]!, from: Long = 0, to: Long = 9223372036854775807) : [SignalDataRowList]
+
     signalScoreData(name: String!, from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRow]
     lastSignalScoreRowsInRange(from: Long = 0, to: Long = 9223372036854775807) : [SignalScoreRowListItem]
+
     aggregatedScoreRows(from: Long = 0, to: Long = 9223372036854775807) : AggregatedScoreRowList
 }
 
