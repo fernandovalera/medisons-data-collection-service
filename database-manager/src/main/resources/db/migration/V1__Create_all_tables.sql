@@ -53,3 +53,11 @@ CREATE TABLE IF NOT EXISTS aggregated_score (
   resp_rate_score   DOUBLE NULL,
   temperature_score DOUBLE NULL
 );
+
+CREATE TABLE IF NOT EXISTS background_data (
+  id                INT NOT NULL PRIMARY KEY,
+  age               INT NULL,
+  weight            INT NULL COMMENT 'units: kg',
+  height            INT NULL COMMENT 'units: cm',
+  sex               ENUM('M', 'F') NULL
+);

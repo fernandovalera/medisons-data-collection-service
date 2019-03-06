@@ -114,4 +114,10 @@ public class QueryTest {
         query.aggregatedScoreRows(TIMESTAMP_1, TIMESTAMP_2);
         verify(signalDataRepository).getAggregatedScoreRowList(TIMESTAMP_1, TIMESTAMP_2);
     }
+
+    @Test
+    void backgroundData() throws Exception {
+        query.backgroundData();
+        verify(signalDataRepository).getBackgroundData();
+    }
 }

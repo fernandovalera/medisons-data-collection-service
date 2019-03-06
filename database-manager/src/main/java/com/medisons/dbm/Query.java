@@ -42,4 +42,8 @@ public class Query implements GraphQLQueryResolver {
     public AggregatedScoreRowList aggregatedScoreRows(long from, long to) throws Exception {
         return signalDataRepository.getAggregatedScoreRowList(from, to);
     }
+
+    public BackgroundData backgroundData() throws Exception {
+        return signalDataRepository.getBackgroundData();
+    }
 }

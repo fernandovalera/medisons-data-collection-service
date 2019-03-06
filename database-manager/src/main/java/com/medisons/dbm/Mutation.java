@@ -34,4 +34,10 @@ public class Mutation implements GraphQLMutationResolver {
         signalDataRepository.saveAggregatedScore(newAggregatedScoreRow);
         return newAggregatedScoreRow;
     }
+
+    public BackgroundData storeBackgroundData(Integer age, Integer weight, Integer height, String sex) throws Exception {
+        BackgroundData newBackgroundData = new BackgroundData(age, weight, height, sex);
+        signalDataRepository.saveBackgroundData(newBackgroundData);
+        return newBackgroundData;
+    }
 }

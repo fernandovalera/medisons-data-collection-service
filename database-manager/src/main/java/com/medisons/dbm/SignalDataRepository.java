@@ -22,6 +22,7 @@ public class SignalDataRepository {
     private static final String STORE_SIGNAL_INFO_ENTRY_QUERY = "REPLACE INTO signal_info VALUES (?, ?)";
     private static final String STORE_SIGNAL_SCORE_QUERY = "REPLACE INTO %s_score VALUE (?, ?, ?)";
     private static final String STORE_AGGREGATED_SCORE_QUERY = "REPLACE INTO aggregated_score VALUES (?, ?, ?, ?, ?, ?, ?)";
+    private static final String STORE_BACKGROUND_DATA_QUERY = "REPLACE INTO background_data VALUES (1, ?, ?, ?, ?)";
     private static final String GET_SIGNAL_DATA_QUERY = "SELECT timestamp, value FROM %s WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
     private static final String GET_SIGNAL_FREQUENCY_QUERY = "SELECT frequency FROM signal_info WHERE name = ?";
     private static final String GET_SIGNAL_SCORE_QUERY = "SELECT timestampFrom, timestampTo, value FROM %s_score WHERE timestampFrom >= ? AND timestampTo <= ?"
@@ -31,6 +32,7 @@ public class SignalDataRepository {
     private static final String GET_LAST_SCORE_IN_RANGE_QUERY = "SELECT * FROM %s where timestampTo BETWEEN ? AND ? ORDER BY timestampTo DESC LIMIT 1";
     private static final String GET_AGGREGATED_SCORE_QUERY = "SELECT timestamp, value, spo2_score, ecg_score, bp_score, resp_rate_score, temperature_score FROM"
             + " aggregated_score WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp";
+    private static final String GET_BACKGROUND_DATA_QUERY = "SELECT age, weight, height, sex FROM background_data WHERE id = 1";
     private static final String DATA_TIMESTAMP_COLUMN = "timestamp";
     private static final String VALUE_COLUMN = "value";
     private static final String SCORE_FROM_COLUMN = "timestampFrom";
@@ -362,6 +364,62 @@ public class SignalDataRepository {
         return new AggregatedScoreRowList(timestamp, value, spo2, ecg, bp, resp, temp);
     }
 
+    public void saveBackgroundData(BackgroundData backgroundData) throws SignalDataDBException {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(STORE_BACKGROUND_DATA_QUERY)
+        ){
+            if (backgroundData.getAge() == null) {
+                preparedStatement.setNull(1, Types.INTEGER);
+            }
+            else {
+                preparedStatement.setInt(1, backgroundData.getAge());
+            }
+            if (backgroundData.getWeight() == null) {
+                preparedStatement.setNull(2, Types.INTEGER);
+            }
+            else {
+                preparedStatement.setInt(2, backgroundData.getWeight());
+            }
+            if (backgroundData.getHeight() == null) {
+                preparedStatement.setNull(3, Types.INTEGER);
+            }
+            else {
+                preparedStatement.setInt(3, backgroundData.getHeight());
+            }
+            if (backgroundData.getSex() == null) {
+                preparedStatement.setNull(4, Types.VARCHAR);
+            }
+            else {
+                preparedStatement.setString(4, backgroundData.getSex());
+            }
+
+            preparedStatement.executeUpdate();
+        }
+        catch (SQLException e) {
+            LOG.error("Error executing store background data query: " + e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+    }
+
+    public BackgroundData getBackgroundData() throws SignalDataDBException {
+        BackgroundData backgroundData = new BackgroundData(null, null, null, null);
+
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_BACKGROUND_DATA_QUERY);
+             ResultSet rs = preparedStatement.executeQuery()
+        ){
+            if (rs.next()) {
+                backgroundData = newBackgroundData(rs);
+            }
+        }
+        catch (SQLException e) {
+            LOG.error("Error executing get background data query: " + e.getMessage());
+            throw new SignalDataDBException(e);
+        }
+
+        return backgroundData;
+    }
+
     private SignalDataRowList newSignalDataList(String signalName, Double frequency, ResultSet rs) throws SQLException {
         List<Long> timestamps = new ArrayList<>();
         List<Double> values = new ArrayList<>();
@@ -398,6 +456,18 @@ public class SignalDataRepository {
 
         return new AggregatedScoreRow(rs.getLong(DATA_TIMESTAMP_COLUMN), rs.getDouble(VALUE_COLUMN),
                 spo2, ecg, bp, resp, temp);
+    }
+
+    private BackgroundData newBackgroundData(ResultSet rs) throws SQLException {
+        Integer age = rs.getInt("age");
+        age = rs.wasNull() ? null : age;
+        Integer weight = rs.getInt("weight");
+        weight = rs.wasNull() ? null : weight;
+        Integer height = rs.getInt("height");
+        height = rs.wasNull() ? null : height;
+        String sex = rs.getString("sex");
+
+        return new BackgroundData(age, weight, height, sex);
     }
 
     public class SignalDataDBException extends Exception {
