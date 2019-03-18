@@ -59,7 +59,7 @@ public class LiveVitalThread extends VitalThread
                 .parseCaseInsensitive()
                 .appendPattern("h:mm:ss a")
                 .toFormatter(Locale.US);
-        ZoneId zoneId = ZoneId.of("UTC");
+        ZoneId zoneId = ZoneId.of("Canada/Mountain");
 
         try (BufferedReader br = new BufferedReader(new FileReader(dataFile)))
         {
