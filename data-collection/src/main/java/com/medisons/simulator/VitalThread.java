@@ -12,7 +12,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-
+/**
+ * Reads from a static vitals signs data file with a format of one value per line with no column header. Creates
+ * packets of data formatted like a MediCollector data packet. Sends data packet to a configured socket port.
+ */
 public class VitalThread implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(VitalThread.class.getName());

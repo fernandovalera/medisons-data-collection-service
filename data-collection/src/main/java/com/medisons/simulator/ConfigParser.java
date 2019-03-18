@@ -24,6 +24,8 @@ public class ConfigParser {
     private static final String NAME_PATH = "/Vitals/Vital[%d]/Name";
     private static final String FREQUENCY_PATH = "/Vitals/Vital[%d]/Frequency";
     private static final String DATAFILE_PATH = "/Vitals/Vital[%d]/DataFile";
+    private static final String TIME_COLUMN_PATH = "/Vitals/Vital[%d]/TimeColumn";
+    private static final String VALUE_COLUMN_PATH = "/Vitals/Vital[%d]/ValueColumn";
 
     public List<Vital> getVitalsFromConfigFile(boolean useLiveConfig, String vitalsDataDir)
     {
@@ -54,7 +56,16 @@ public class ConfigParser {
                     frequency.append(" ");
                 }
 
-                vitals.add(new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile));
+                if (useLiveConfig)
+                {
+                    int timeColumn = Integer.parseInt((String) xpath.compile(String.format(TIME_COLUMN_PATH, i + 1)).evaluate(doc, XPathConstants.STRING)) - 1;
+                    int valueColumn = Integer.parseInt((String) xpath.compile(String.format(VALUE_COLUMN_PATH, i + 1)).evaluate(doc, XPathConstants.STRING)) - 1;
+                    vitals.add(new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile, timeColumn, valueColumn));
+                }
+                else
+                {
+                    vitals.add(new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile, 0, 0));
+                }
             }
         }
         catch (ParserConfigurationException | SAXException | XPathExpressionException | NumberFormatException | IOException e)

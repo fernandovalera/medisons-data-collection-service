@@ -50,7 +50,8 @@ public class SensorSimulator {
                     if (useLiveConfig)
                     {
                         vitalRunnable = new LiveVitalThread(vital.getName(), vital.getFrequency(),
-                                vital.getDataPointsPerPacket(), vital.getDataFile(), threadSocket);
+                                vital.getDataPointsPerPacket(), vital.getDataFile(), threadSocket,
+                                vital.getTimeColumn(), vital.getValueColumn());
                     }
                     else
                     {
