@@ -15,7 +15,7 @@ The DBM makes patient data accessible to other services and is responsible for s
         > java -cp build/classes/java/main com.medisons.simulator.SensorSimulator [files path]
     
     - Live files:
-        > java -cp build/classes/java/main com.medisons.simulator.SensorSimulator [files path] live
+        > java -Duser.timezone=Canada/Mountain -cp build/classes/java/main com.medisons.simulator.SensorSimulator [files path] live
 
 ## Running the DCS
 
