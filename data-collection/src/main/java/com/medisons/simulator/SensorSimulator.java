@@ -12,11 +12,22 @@ public class SensorSimulator {
 
     private static final Logger LOG = Logger.getLogger(SensorSimulator.class.getName());
 
+    private static final String DEFAULT_VITALS_DATA_DIR = "resources";
     private static final int SENSOR_PORT = 2057;
 
     public static void main(String[] argv)
     {
-        ServerSocket listener = null;
+        String vitalsDataDir = DEFAULT_VITALS_DATA_DIR;
+        boolean useLiveConfig = false;
+
+        if (argv.length >= 1) {
+            vitalsDataDir = argv[0];
+        }
+        if (argv.length >= 2) {
+            useLiveConfig = argv[1].equalsIgnoreCase("live");
+        }
+
+        ServerSocket listener;
         try {
             listener = new ServerSocket(SENSOR_PORT);
         } catch (IOException e) {
@@ -26,7 +37,7 @@ public class SensorSimulator {
         }
 
         ConfigParser configParser = new ConfigParser();
-        List<Vital> vitals = configParser.getVitalsFromConfigFile();
+        List<Vital> vitals = configParser.getVitalsFromConfigFile(useLiveConfig, vitalsDataDir);
 
         while (true) {
             try (Socket socket = listener.accept())
@@ -35,8 +46,17 @@ public class SensorSimulator {
                 List<Thread> vitalThreads = new ArrayList<>();
                 for (Vital vital : vitals)
                 {
-                    Runnable vitalRunnable = new VitalThread(vital.getName(), vital.getFrequency(),
-                            vital.getDataPointsPerPacket(), vital.getDataFile(), threadSocket);
+                    Runnable vitalRunnable;
+                    if (useLiveConfig)
+                    {
+                        vitalRunnable = new LiveVitalThread(vital.getName(), vital.getFrequency(),
+                                vital.getDataPointsPerPacket(), vital.getDataFile(), threadSocket);
+                    }
+                    else
+                    {
+                        vitalRunnable = new VitalThread(vital.getName(), vital.getFrequency(),
+                                vital.getDataPointsPerPacket(), vital.getDataFile(), threadSocket);
+                    }
                     vitalThreads.add(new Thread(vitalRunnable));
                 }
 

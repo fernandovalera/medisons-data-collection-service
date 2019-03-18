@@ -2,21 +2,21 @@
   <Vital>
     <Name>spo2</Name>
     <Frequency>125</Frequency>
-    <DataFile>resources/Sample_Patient_O2_Data_ASCII.txt</DataFile>
+    <DataFile>Sample_Patient_O2_Data_ASCII.txt</DataFile>
   </Vital>
   <Vital>
     <Name>bp_dia</Name>
     <Frequency>25</Frequency>
-    <DataFile>resources/Sample_Patient_BP_DIA_Data_ASCII.txt</DataFile>
+    <DataFile>Sample_Patient_BP_DIA_Data_ASCII.txt</DataFile>
   </Vital>
   <Vital>
     <Name>bp_sys</Name>
     <Frequency>25</Frequency>
-    <DataFile>resources/Sample_Patient_BP_SYS_Data_ASCII.txt</DataFile>
+    <DataFile>Sample_Patient_BP_SYS_Data_ASCII.txt</DataFile>
   </Vital>
   <Vital>
     <Name>ecg</Name>
     <Frequency>300</Frequency>
-    <DataFile>resources/Sample_Patient_ECG_Data_ASCII.txt</DataFile>
+    <DataFile>Sample_Patient_ECG_Data_ASCII.txt</DataFile>
   </Vital>
 </Vitals>

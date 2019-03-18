@@ -1,0 +1,7 @@
+<Vitals>
+    <Vital>
+        <Name>ecg</Name>
+        <Frequency>300</Frequency>
+        <DataFile>AS3ExportDataECG.csv</DataFile>
+    </Vital>
+</Vitals>
