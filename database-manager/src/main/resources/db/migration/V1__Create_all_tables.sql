@@ -44,6 +44,30 @@ CREATE TABLE IF NOT EXISTS spo2_score (
   CONSTRAINT PK_spo2_score PRIMARY KEY (timestampFrom, timestampTo)
 );
 
+CREATE TABLE IF NOT EXISTS resp_rate (
+  timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  value             DOUBLE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS resp_rate_score (
+  timestampFrom     BIGINT UNSIGNED NOT NULL,
+  timestampTo       BIGINT UNSIGNED NOT NULL,
+  value             DOUBLE NOT NULL,
+  CONSTRAINT PK_resp_rate_score PRIMARY KEY (timestampFrom, timestampTo)
+);
+
+CREATE TABLE IF NOT EXISTS temperature (
+  timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  value             DOUBLE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS temperature_score (
+  timestampFrom     BIGINT UNSIGNED NOT NULL,
+  timestampTo       BIGINT UNSIGNED NOT NULL,
+  value             DOUBLE NOT NULL,
+  CONSTRAINT PK_temperature_score PRIMARY KEY (timestampFrom, timestampTo)
+);
+
 CREATE TABLE IF NOT EXISTS aggregated_score (
   timestamp         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   value             DOUBLE NULL,

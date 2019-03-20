@@ -26,6 +26,7 @@ public class ConfigParser {
     private static final String DATAFILE_PATH = "/Vitals/Vital[%d]/DataFile";
     private static final String TIME_COLUMN_PATH = "/Vitals/Vital[%d]/TimeColumn";
     private static final String VALUE_COLUMN_PATH = "/Vitals/Vital[%d]/ValueColumn";
+    private static final String ENABLED_PATH = "/Vitals/Vital[%d]/Enabled";
 
     public List<Vital> getVitalsFromConfigFile(boolean useLiveConfig, String vitalsDataDir)
     {
@@ -41,10 +42,16 @@ public class ConfigParser {
             NodeList nl = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 
             for (int i = 0; i < nl.getLength(); i++) {
-                StringBuilder name = new StringBuilder((String) xpath.compile(String.format(NAME_PATH, i + 1)).evaluate(doc, XPathConstants.STRING));
-                StringBuilder frequency = new StringBuilder((String) xpath.compile(String.format(FREQUENCY_PATH, i + 1)).evaluate(doc, XPathConstants.STRING));
+                StringBuilder name = new StringBuilder((String) xpath.compile(String.format(NAME_PATH, i + 1))
+                        .evaluate(doc, XPathConstants.STRING));
+                StringBuilder frequency = new StringBuilder((String) xpath.compile(String.format(FREQUENCY_PATH, i + 1))
+                        .evaluate(doc, XPathConstants.STRING));
                 int dataPointsPerPacket = Integer.parseInt(frequency.toString());
-                String dataFile = Paths.get(vitalsDataDir, (String)xpath.compile(String.format(DATAFILE_PATH, i + 1)).evaluate(doc, XPathConstants.STRING)).toString();
+                String dataFile = Paths.get(vitalsDataDir, (String)xpath.compile(String.format(DATAFILE_PATH, i + 1))
+                        .evaluate(doc, XPathConstants.STRING)).toString();
+                String enabledString = (String)xpath.compile(String.format(ENABLED_PATH, i + 1))
+                        .evaluate(doc, XPathConstants.STRING);
+                boolean enabled = Boolean.parseBoolean(enabledString);
 
                 // pad signal name and frequency names for MediCollector format
                 while (name.length() < 30)
@@ -58,13 +65,20 @@ public class ConfigParser {
 
                 if (useLiveConfig)
                 {
-                    int timeColumn = Integer.parseInt((String) xpath.compile(String.format(TIME_COLUMN_PATH, i + 1)).evaluate(doc, XPathConstants.STRING)) - 1;
-                    int valueColumn = Integer.parseInt((String) xpath.compile(String.format(VALUE_COLUMN_PATH, i + 1)).evaluate(doc, XPathConstants.STRING)) - 1;
-                    vitals.add(new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile, timeColumn, valueColumn));
+                    int timeColumn = Integer.parseInt((String) xpath.compile(String.format(TIME_COLUMN_PATH, i + 1))
+                            .evaluate(doc, XPathConstants.STRING)) - 1;
+                    int valueColumn = Integer.parseInt((String) xpath.compile(String.format(VALUE_COLUMN_PATH, i + 1))
+                            .evaluate(doc, XPathConstants.STRING)) - 1;
+                    vitals.add(
+                            new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile, enabled,
+                            timeColumn, valueColumn)
+                    );
                 }
                 else
                 {
-                    vitals.add(new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile, 0, 0));
+                    vitals.add(
+                            new Vital(name.toString(), frequency.toString(), dataPointsPerPacket, dataFile, enabled)
+                    );
                 }
             }
         }

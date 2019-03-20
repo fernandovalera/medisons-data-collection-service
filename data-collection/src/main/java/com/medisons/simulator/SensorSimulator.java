@@ -46,6 +46,9 @@ public class SensorSimulator {
                 List<Thread> vitalThreads = new ArrayList<>();
                 for (Vital vital : vitals)
                 {
+                    if (!vital.isEnabled())
+                        continue;
+
                     Runnable vitalRunnable;
                     if (useLiveConfig)
                     {

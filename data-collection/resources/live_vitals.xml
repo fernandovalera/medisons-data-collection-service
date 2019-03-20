@@ -4,14 +4,16 @@
         <Frequency>1</Frequency>
         <DataFile>AS3ExportData.csv</DataFile>
         <TimeColumn>2</TimeColumn>
-        <ValueColumn>4</ValueColumn>
+        <ValueColumn>5</ValueColumn>
+        <Enabled>True</Enabled>
     </Vital>
     <Vital>
         <Name>bp_sys</Name>
         <Frequency>1</Frequency>
         <DataFile>AS3ExportData.csv</DataFile>
         <TimeColumn>2</TimeColumn>
-        <ValueColumn>5</ValueColumn>
+        <ValueColumn>4</ValueColumn>
+        <Enabled>True</Enabled>
     </Vital>
     <Vital>
         <Name>ecg</Name>
@@ -19,5 +21,24 @@
         <DataFile>AS3ExportDataECG.csv</DataFile>
         <TimeColumn>1</TimeColumn>
         <ValueColumn>2</ValueColumn>
+        <Enabled>True</Enabled>
+    </Vital>
+    <Vital>
+        <Name>resp_rate</Name>
+        <Frequency>25</Frequency>
+        <DataFile>AS3ExportDataCO2.txt</DataFile>
+        <Enabled>False</Enabled>
+    </Vital>
+    <Vital>
+        <Name>spo2</Name>
+        <Frequency>125</Frequency>
+        <DataFile>AS3ExportDataPLETH.txt</DataFile>
+        <Enabled>False</Enabled>
+    </Vital>
+    <Vital>
+        <Name>temperature</Name>
+        <Frequency>1</Frequency>
+        <DataFile>AS3ExportDataTEMP.txt</DataFile>
+        <Enabled>False</Enabled>
     </Vital>
 </Vitals>
