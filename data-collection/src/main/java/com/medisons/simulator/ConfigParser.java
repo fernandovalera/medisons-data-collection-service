@@ -22,6 +22,7 @@ public class ConfigParser {
     private static final String NAME_PATH = "/Vitals/Vital[%d]/Name";
     private static final String FREQUENCY_PATH = "/Vitals/Vital[%d]/Frequency";
     private static final String DATAFILE_PATH = "/Vitals/Vital[%d]/DataFile";
+    private static final String ENABLED_PATH = "/Vitals/Vital[%d]/Enabled";
 
     public List<Vital> getVitalsFromConfigFile()
     {
@@ -41,6 +42,8 @@ public class ConfigParser {
                 String frequency = (String)xpath.compile(String.format(FREQUENCY_PATH, i + 1)).evaluate(doc, XPathConstants.STRING);
                 int dataPointsPerPacket = Integer.parseInt(frequency);
                 String dataFile = (String)xpath.compile(String.format(DATAFILE_PATH, i + 1)).evaluate(doc, XPathConstants.STRING);
+                String enabledString = (String)xpath.compile(String.format(ENABLED_PATH, i + 1)).evaluate(doc, XPathConstants.STRING);
+                boolean enabled = Boolean.parseBoolean(enabledString);
 
                 // pad signal name and frequency names for MediCollector format
                 while (name.length() < 30)
@@ -52,7 +55,7 @@ public class ConfigParser {
                     frequency += " ";
                 }
 
-                vitals.add(new Vital(name, frequency, dataPointsPerPacket, dataFile));
+                vitals.add(new Vital(name, frequency, dataPointsPerPacket, dataFile, enabled));
             }
         }
         catch (ParserConfigurationException | SAXException | XPathExpressionException | NumberFormatException | IOException e)

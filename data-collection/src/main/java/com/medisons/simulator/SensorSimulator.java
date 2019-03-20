@@ -35,6 +35,9 @@ public class SensorSimulator {
                 List<Thread> vitalThreads = new ArrayList<>();
                 for (Vital vital : vitals)
                 {
+                    if (!vital.isEnabled()) {
+                        continue;
+                    }
                     Runnable vitalRunnable = new VitalThread(vital.getName(), vital.getFrequency(),
                             vital.getDataPointsPerPacket(), vital.getDataFile(), threadSocket);
                     vitalThreads.add(new Thread(vitalRunnable));
