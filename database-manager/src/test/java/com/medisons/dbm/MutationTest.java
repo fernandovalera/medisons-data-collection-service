@@ -32,6 +32,19 @@ class MutationTest {
         }
     }
 
+    private static final long AGGREGATE_TIMESTAMP = 1546300802000L;
+    private static final double AGGREGATE_VALUE = 7.5;
+    private static final double AGGREGATE_SPO2 = 1.5;
+    private static final double AGGREGATE_ECG = 3.0;
+    private static final double AGGREGATE_BP = 0.0;
+    private static final double AGGREGATE_RESP = 2.0;
+    private static final double AGGREGATE_TEMP = 1.0;
+
+    private static final int BACKGROUND_AGE = 25;
+    private static final int BACKGROUND_WEIGHT = 65;
+    private static final int BACKGROUND_HEIGHT = 170;
+    private static final String BACKGROUND_SEX = "F";
+
     private Mutation mutation;
 
     @Mock
@@ -48,7 +61,7 @@ class MutationTest {
     }
 
     @Test
-    void storeSignalData() {
+    void storeSignalData() throws Exception {
         SignalData expectedSignalData = new SignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STR, SPO2_DATAPOINTS);
         SignalData actualSignalData = mutation.storeSignalData(SPO2_NAME, SPO2_FREQUENCY, SPO2_TIMESTAMP_STR, SPO2_DATAPOINTS);
         assertEquals(expectedSignalData, actualSignalData);
@@ -56,10 +69,28 @@ class MutationTest {
     }
 
     @Test
-    void storeSignalScore() {
+    void storeSignalScore() throws Exception {
         SignalScoreRow expectedSignalScore = new SignalScoreRow(SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         SignalScoreRow actualSignalScore = mutation.storeSignalScore(SPO2_NAME, SPO2_TIMESTAMP_FROM, SPO2_TIMESTAMP_TO, SPO2_VALUE);
         assertEquals(expectedSignalScore, actualSignalScore);
         verify(signalDataRepository).saveSignalScore(SPO2_NAME, actualSignalScore);
+    }
+
+    @Test
+    void storeAggregatedScore() throws Exception {
+        AggregatedScoreRow expectedAggregatedScoreRow = new AggregatedScoreRow(AGGREGATE_TIMESTAMP, AGGREGATE_VALUE, AGGREGATE_SPO2,
+                AGGREGATE_ECG, AGGREGATE_BP, AGGREGATE_RESP, AGGREGATE_TEMP);
+        AggregatedScoreRow actualAggregatedScoreRow = mutation.storeAggregatedScore(AGGREGATE_TIMESTAMP, AGGREGATE_VALUE, AGGREGATE_SPO2,
+                AGGREGATE_ECG, AGGREGATE_BP, AGGREGATE_RESP, AGGREGATE_TEMP);
+        assertEquals(expectedAggregatedScoreRow, actualAggregatedScoreRow);
+        verify(signalDataRepository).saveAggregatedScore(actualAggregatedScoreRow);
+    }
+
+    @Test
+    void storeBackgroundData() throws Exception {
+        BackgroundData expectedBackgroundData = new BackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, BACKGROUND_HEIGHT, BACKGROUND_SEX);
+        BackgroundData actualBackgroundData = mutation.storeBackgroundData(BACKGROUND_AGE, BACKGROUND_WEIGHT, BACKGROUND_HEIGHT, BACKGROUND_SEX);
+        assertEquals(expectedBackgroundData, actualBackgroundData);
+        verify(signalDataRepository).saveBackgroundData(actualBackgroundData);
     }
 }

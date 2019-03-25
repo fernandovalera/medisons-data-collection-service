@@ -2,11 +2,37 @@
   <Vital>
     <Name>spo2</Name>
     <Frequency>125</Frequency>
-    <DataFile>resources/Sample_Patient_O2_Data_ASCII.txt</DataFile>
+    <DataFile>resources/SPO2_ASCII.txt</DataFile>
+    <Enabled>True</Enabled>
   </Vital>
   <Vital>
-    <Name>bp</Name>
+    <Name>bp_dia</Name>
+    <Frequency>1</Frequency>
+    <DataFile>resources/BP_DIA_ASCII.txt</DataFile>
+    <Enabled>True</Enabled>
+  </Vital>
+  <Vital>
+    <Name>bp_sys</Name>
+    <Frequency>1</Frequency>
+    <DataFile>resources/BP_SYS_ASCII.txt</DataFile>
+    <Enabled>True</Enabled>
+  </Vital>
+  <Vital>
+    <Name>ecg</Name>
+    <Frequency>300</Frequency>
+    <DataFile>resources/ECG_ASCII.txt</DataFile>
+    <Enabled>True</Enabled>
+  </Vital>
+  <Vital>
+    <Name>resp_rate</Name>
     <Frequency>25</Frequency>
-    <DataFile>resources/Sample_Patient_BP_Data_ASCII.txt</DataFile>
+    <DataFile>resources/CO2_ASCII.txt</DataFile>
+    <Enabled>False</Enabled>
+  </Vital>
+  <Vital>
+    <Name>temperature</Name>
+    <Frequency>1</Frequency>
+    <DataFile>resources/Temp_ASCII.txt</DataFile>
+    <Enabled>False</Enabled>
   </Vital>
 </Vitals>

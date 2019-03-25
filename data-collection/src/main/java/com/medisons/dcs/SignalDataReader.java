@@ -3,7 +3,6 @@ package com.medisons.dcs;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.http.HttpClient;
 import java.nio.ByteBuffer;
@@ -23,6 +22,7 @@ public class SignalDataReader {
 
     private static final Logger LOG = Logger.getLogger(SignalDataReader.class.getName());
 
+    private final static String SENSOR_HOST = "localhost";
     private final static int DATA_IN_PORT = 2057;
     private final static int FIELD_SIGNAL_NAME_LENGTH = 30;
     private final static int FIELD_SIGNAL_FREQUENCY_LENGTH = 10;
@@ -163,18 +163,10 @@ public class SignalDataReader {
 
     public static void main(String[] args)
     {
-        Socket listener = null;
-        try {
-            listener = new Socket("localhost", DATA_IN_PORT);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         while (true) {
-            try {
-                //Socket dataInSocket = listener.accept();
+            try (Socket dataInSocket = new Socket(SENSOR_HOST, DATA_IN_PORT)){
 
-                SignalDataReader dataReader = new SignalDataReader(new BufferedInputStream(listener.getInputStream()));
+                SignalDataReader dataReader = new SignalDataReader(new BufferedInputStream(dataInSocket.getInputStream()));
 
                 DataDistributor dataDistributor = new DataDistributor(HttpClient.newHttpClient());
 
@@ -188,7 +180,7 @@ public class SignalDataReader {
                     }
                 }
             } catch (IOException e) {
-                LOG.info("Lost connection with sensor, will attempt to reconnect.");
+                LOG.info("Lost connection with sensor, will attempt to reconnect: " + e.getMessage());
             }
 
             try {

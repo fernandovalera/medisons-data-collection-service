@@ -2,6 +2,7 @@ package com.medisons.dbm;
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Query implements GraphQLQueryResolver {
@@ -12,15 +13,37 @@ public class Query implements GraphQLQueryResolver {
         this.signalDataRepository = signalDataRepository;
     }
 
-    public SignalData allSignalData(String signalName, long from, long to) {
-        return signalDataRepository.getAllSignalData(signalName, from, to);
+    public List<SignalDataRowList> multiSignalDataRows(List<String> signalNames, long from, long to) throws Exception {
+        List<SignalDataRowList> multiSignalDataList = new ArrayList<>();
+        for (String signalName : signalNames)
+        {
+            multiSignalDataList.addAll(this.signalDataRows(signalName, from, to));
+        }
+        return multiSignalDataList;
     }
 
-    public List<SignalDataRow> signalDataRow(String signalName, long from, long to) {
-        return signalDataRepository.getAllSignalDataRow(signalName, from, to);
+    public List<SignalDataRowList> signalDataRows(String baseSignalName, long from, long to) throws Exception {
+        List<String> signalNames = signalDataRepository.getSignalTableNamesFromBaseName(baseSignalName);
+        List<SignalDataRowList> signalDataList = new ArrayList<>();
+        for (String signalName : signalNames) {
+            signalDataList.add(signalDataRepository.getSignalDataRowList(signalName, from, to));
+        }
+        return signalDataList;
     }
 
-    public List<SignalScoreRow> signalScoreData(String signalName, long from, long to) {
+    public List<SignalScoreRow> signalScoreData(String signalName, long from, long to) throws Exception {
         return signalDataRepository.getSignalScoreData(signalName, from, to);
+    }
+
+    public List<SignalScoreRowListItem> lastSignalScoreRowsInRange(long from, long to) throws Exception {
+        return signalDataRepository.getLastSignalScoreRowsInRange(from, to);
+    }
+
+    public AggregatedScoreRowList aggregatedScoreRows(long from, long to) throws Exception {
+        return signalDataRepository.getAggregatedScoreRowList(from, to);
+    }
+
+    public BackgroundData backgroundData() throws Exception {
+        return signalDataRepository.getBackgroundData();
     }
 }
