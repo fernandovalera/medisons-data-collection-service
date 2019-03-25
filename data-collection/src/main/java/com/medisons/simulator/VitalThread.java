@@ -12,19 +12,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-
+/**
+ * Reads from a static vitals signs data file with a format of one value per line with no column header. Creates
+ * packets of data formatted like a MediCollector data packet. Sends data packet to a configured socket port.
+ */
 public class VitalThread implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(VitalThread.class.getName());
 
-    private final String signalName;
+    final String signalName;
     private final String frequency;
-    private final int dataPointsPerPacket;
-    private final String dataFile;
-    private final ThreadSocket socket;
+    final int dataPointsPerPacket;
+    final String dataFile;
+    final ThreadSocket socket;
 
-    private ArrayList<Double> readings;
-    private int readingsIndex;
+    ArrayList<Double> readings;
+    int readingsIndex;
 
     private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss.SSS";  //MediCollector date format
     private static final String TERMINATION_CHAR = "|||||";

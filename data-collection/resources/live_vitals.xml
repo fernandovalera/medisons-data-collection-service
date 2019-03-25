@@ -2,37 +2,43 @@
     <Vital>
         <Name>bp_dia</Name>
         <Frequency>1</Frequency>
-        <DataFile>BP_DIA_ASCII.txt</DataFile>
+        <DataFile>AS3ExportData.csv</DataFile>
+        <TimeColumn>2</TimeColumn>
+        <ValueColumn>5</ValueColumn>
         <Enabled>True</Enabled>
     </Vital>
     <Vital>
         <Name>bp_sys</Name>
         <Frequency>1</Frequency>
-        <DataFile>BP_SYS_ASCII.txt</DataFile>
+        <DataFile>AS3ExportData.csv</DataFile>
+        <TimeColumn>2</TimeColumn>
+        <ValueColumn>4</ValueColumn>
         <Enabled>True</Enabled>
     </Vital>
     <Vital>
         <Name>ecg</Name>
         <Frequency>300</Frequency>
-        <DataFile>ECG_ASCII.txt</DataFile>
+        <DataFile>AS3ExportDataECG.csv</DataFile>
+        <TimeColumn>1</TimeColumn>
+        <ValueColumn>2</ValueColumn>
         <Enabled>True</Enabled>
     </Vital>
     <Vital>
         <Name>resp_rate</Name>
         <Frequency>25</Frequency>
-        <DataFile>CO2_ASCII.txt</DataFile>
-        <Enabled>True</Enabled>
+        <DataFile>AS3ExportDataCO2.txt</DataFile>
+        <Enabled>False</Enabled>
     </Vital>
     <Vital>
         <Name>spo2</Name>
         <Frequency>125</Frequency>
-        <DataFile>SPO2_ASCII.txt</DataFile>
-        <Enabled>True</Enabled>
+        <DataFile>AS3ExportDataPLETH.txt</DataFile>
+        <Enabled>False</Enabled>
     </Vital>
     <Vital>
         <Name>temperature</Name>
         <Frequency>1</Frequency>
-        <DataFile>Temp_ASCII.txt</DataFile>
-        <Enabled>True</Enabled>
+        <DataFile>AS3ExportDataTEMP.txt</DataFile>
+        <Enabled>False</Enabled>
     </Vital>
 </Vitals>
