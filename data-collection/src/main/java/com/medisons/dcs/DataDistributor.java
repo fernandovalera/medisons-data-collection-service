@@ -33,7 +33,7 @@ public class DataDistributor {
      * @param signalData SignalData to be stored.
      * @return 0 if there were no exceptions and the HTTP response status code was 200, or
      * -1 if there was an exception,
-     * the HTTP response status code otherwise
+     * the HTTP response status code otherwise.
      */
     public int storeSignalData(SignalData signalData) {
         String body = String.format(

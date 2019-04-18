@@ -1,0 +1,14 @@
+<Vitals>
+    <Vital>
+        <Name>bp_dia</Name>
+        <Frequency>1</Frequency>
+        <DataFile>BP_DIA_ASCII.txt</DataFile>
+        <Enabled>True</Enabled>
+    </Vital>
+    <Vital>
+        <Name>ecg</Name>
+        <Frequency>300</Frequency>
+        <DataFile>ECG_ASCII.txt</DataFile>
+        <Enabled>False</Enabled>
+    </Vital>
+</Vitals>

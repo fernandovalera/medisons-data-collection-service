@@ -29,9 +29,18 @@ public class VitalThread implements Runnable {
     ArrayList<Double> readings;
     int readingsIndex;
 
-    private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss.SSS";  //MediCollector date format
-    private static final String TERMINATION_CHAR = "|||||";
+    private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss.SSS";  // MediCollector date format
+    private static final String TERMINATION_CHAR = "|||||"; // MediCollector packet termination string
 
+    /**
+     * Constructs new LiveVitalThread.
+     *
+     * @param signalName Formatted string name of the signal.
+     * @param frequency Formatted string representing frequency of the signal.
+     * @param dataPointsPerPacket Integer frequency of the signal.
+     * @param dataFile The relative path of the csv data file for the signal.
+     * @param socket The socket for sending data packets to.
+     **/
     public VitalThread(String signalName, String frequency, int dataPointsPerPacket, String dataFile,
                             ThreadSocket socket)
     {
@@ -73,7 +82,7 @@ public class VitalThread implements Runnable {
     /**
      * Gets the readings to include in the next packet, and returns them as a list.
      * If the end of the readings list is reached, an empty list is returned.
-     * @return list of readings to include in the next packet.
+     * @return List of readings to include in the next packet.
      */
     protected ArrayList<Double> getReadingsForNextPacket()
     {
@@ -118,8 +127,11 @@ public class VitalThread implements Runnable {
 
     /**
      * Creates and returns a byte array, formatted using the MediCollector packet protocol defined
-     * in https://www.medicollector.com/uploads/3/1/0/6/31064385/medicollector_bedside_-_tcp_streaming_interface.pdf
-     * @return
+     * in: https://www.medicollector.com/uploads/3/1/0/6/31064385/medicollector_bedside_-_tcp_streaming_interface.pdf
+     * Local copy included in data-collection/resources dir.
+     *
+     * @param tZeroMillis The epoch time in milliseconds to indicate the timestamp of the first data point.
+     * @return A byte array of signal metadata and value data.
      */
     protected byte[] preparePacket(long tZeroMillis)
     {
@@ -153,6 +165,10 @@ public class VitalThread implements Runnable {
         return packet;
     }
 
+    /**
+     * Continuously reads from a data file until the end of the file is reached. Pauses for 1 second after sending a
+     * data packet.
+     */
     public void run()
     {
         getReadingsFromFile();
@@ -166,14 +182,15 @@ public class VitalThread implements Runnable {
                 byte[] packet = preparePacket(tZeroMillis);
                 if (packet == null)
                 {
-                    LOG.info(signalName.trim() + " thread finished sending packets. Sent " + packetsSent + " packets.");
+                    LOG.info(signalName.trim() + " thread finished sending packets. Sent " + packetsSent +
+                            " packets.");
                     break;
                 }
                 socket.write(packet);
                 packetsSent++;
                 tZeroMillis += 1000;
 
-                //send packet every second
+                // send packet every second
                 try
                 {
                     Thread.sleep(1000);

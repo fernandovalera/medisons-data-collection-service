@@ -1,0 +1,18 @@
+<Vitals>
+    <Vital>
+        <Name>bp_dia</Name>
+        <Frequency>1</Frequency>
+        <DataFile>ExportData.csv</DataFile>
+        <TimeColumn>2</TimeColumn>
+        <ValueColumn>5</ValueColumn>
+        <Enabled>True</Enabled>
+    </Vital>
+    <Vital>
+        <Name>ecg</Name>
+        <Frequency>300</Frequency>
+        <DataFile>ExportDataECG.csv</DataFile>
+        <TimeColumn>1</TimeColumn>
+        <ValueColumn>2</ValueColumn>
+        <Enabled>False</Enabled>
+    </Vital>
+</Vitals>

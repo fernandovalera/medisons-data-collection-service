@@ -3,30 +3,35 @@ package com.medisons.simulator;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 
 public class SensorSimulator {
 
     private static final Logger LOG = Logger.getLogger(SensorSimulator.class.getName());
-
-    private static final String DEFAULT_VITALS_DATA_DIR = "resources";
     private static final int SENSOR_PORT = 2057;
 
-    public static void main(String[] argv)
-    {
-        String vitalsDataDir = DEFAULT_VITALS_DATA_DIR;
-        boolean useLiveConfig = false;
+    @Parameter(names = "-data", description = "Data directory to find vital sign signal files in.")
+    private String vitalsDataDir = "resources";
+    @Parameter(names = "-live", description = "Data files are written to by an external source continuously.")
+    private boolean useLiveConfig = false;
 
-        if (argv.length >= 1) {
-            vitalsDataDir = argv[0];
-        }
-        if (argv.length >= 2) {
-            useLiveConfig = argv[1].equalsIgnoreCase("live");
-        }
+    public static void main(String[] argv) {
+        SensorSimulator sensorSimulator = new SensorSimulator();
+        JCommander.newBuilder()
+                .addObject(sensorSimulator)
+                .build()
+                .parse(argv);
+        sensorSimulator.run();
+    }
 
+    public void run() {
         ServerSocket listener;
         try {
             listener = new ServerSocket(SENSOR_PORT);
@@ -36,8 +41,15 @@ public class SensorSimulator {
             return;
         }
 
-        ConfigParser configParser = new ConfigParser();
-        List<Vital> vitals = configParser.getVitalsFromConfigFile(useLiveConfig, vitalsDataDir);
+        URL configFileURI;
+        if (useLiveConfig) {
+            configFileURI = SensorSimulator.class.getClassLoader().getResource("live_vitals.xml");
+        } else {
+            configFileURI = SensorSimulator.class.getClassLoader().getResource("vitals.xml");
+        }
+
+        ConfigParser configParser = new ConfigParser(Objects.requireNonNull(configFileURI).toString(), useLiveConfig);
+        List<Vital> vitals = configParser.getVitalsFromConfigFile(vitalsDataDir);
 
         while (true) {
             try (Socket socket = listener.accept())

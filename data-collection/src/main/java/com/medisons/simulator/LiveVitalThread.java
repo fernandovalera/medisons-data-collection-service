@@ -12,8 +12,10 @@ import java.util.logging.Logger;
 /**
  * An extension of the VitalThread class.
  *
- * Reads from a vital sign signal data file until the program is interrupted. Expects a CSV file format where the time
- * column is of the time format '.h:mm:ss a'. Sends data packet to a configured socket port.
+ * Reads from a vital sign signal data file until the program is interrupted. Expects a CSV file format where there is a
+ * time column of the format 'h:mm:ss a'. Sends data packet to a configured socket port.
+ *
+ * This class is designed to interface with VitalSignsCapture's output file format.
  */
 public class LiveVitalThread extends VitalThread
 {
@@ -22,6 +24,17 @@ public class LiveVitalThread extends VitalThread
     private final int timeColumn;
     private final int valueColumn;
 
+    /**
+     * Constructs new LiveVitalThread.
+     *
+     * @param signalName Padded string name of the signal.
+     * @param frequency Padded string representing frequency of the signal.
+     * @param dataPointsPerPacket Integer frequency of the signal.
+     * @param dataFile The relative path of the csv data file for the signal.
+     * @param socket The socket for sending data packets to.
+     * @param timeColumn The column in the csv data file to parse for time.
+     * @param valueColumn The column in the csv data file to parse for values.
+     */
     public LiveVitalThread(String signalName, String frequency, int dataPointsPerPacket, String dataFile,
                            ThreadSocket socket, int timeColumn, int valueColumn)
     {
@@ -31,11 +44,23 @@ public class LiveVitalThread extends VitalThread
         this.valueColumn = valueColumn;
     }
 
+    /**
+     * Helper to determine if a particular string is a number.
+     *
+     * @param str The string to test.
+     * @return True if the string represents a number, false otherwise.
+     */
     private static boolean isNumeric(String str)
     {
         return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
     }
 
+    /**
+     * Helper to send data packet and reset the readings index.
+     *
+     * @param epochMilliseconds The epoch time in milliseconds to use for the first data point in the packet.
+     * @throws IOException If there was an error writing to socket.
+     */
     private void sendPacket(long epochMilliseconds) throws IOException {
         byte[] packet = preparePacket(epochMilliseconds);
 
@@ -53,6 +78,10 @@ public class LiveVitalThread extends VitalThread
         readingsIndex = 0;
     }
 
+    /**
+     * Continuously reads from a data file until the thread is forced to stop. Assumes Canada/Mountain timezone for
+     * preparing current timestamps and reading timestamps from the data file.
+     */
     public void run()
     {
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()

@@ -63,6 +63,14 @@ class DataDistributorTest {
     }
 
     @Test
+    void storeDataPoints_givenBadRequest_returnBadRequest() throws IOException, InterruptedException {
+        Mockito.when(httpClientMock.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenReturn(httpResponseMock);
+        Mockito.when(httpResponseMock.statusCode()).thenReturn(400);
+        assertEquals(400, dataDistributor.storeSignalData(signalDataMock));
+    }
+
+    @Test
     void storeDataPoints_givenException_returnError() {
         try {
             Mockito.when(httpClientMock.send(any(), eq(HttpResponse.BodyHandlers.ofString()))).thenThrow(IOException.class);

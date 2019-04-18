@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 
 /**
  * Reads data packets from a single input stream.
+ *
+ * Data packets are expected to be in the output format of MediCollector's output signal data.
  */
 public class SignalDataReader {
 
@@ -152,13 +154,11 @@ public class SignalDataReader {
     }
 
     /**
-     * Main entry-point for Data Collection Service.
+     * Main entry point for Data Collection Service.
      *
      * Continuously attempts to connect to a socket on a specified host and port. If connection is lost, will try to
      * reconnect. When connected to the socket, will continuously read data packets and request storage of data through
      * the DataDistributor class.
-     *
-     * @param args
      */
     public static void main(String[] args)
     {
