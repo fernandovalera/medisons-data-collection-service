@@ -37,8 +37,13 @@ public class SignalDataReader {
 
     static {
         medicollectorToMedisons.put("pleth","spo2");
-        medicollectorToMedisons.put("pulse_from_nibp","bp");
         medicollectorToMedisons.put("ecg1","ecg");
+
+        // TODO: determine translations for bp_sys, bp_dia, temperature and resp_rate.
+        medicollectorToMedisons.put("place_holder_bp_sys","bp_sys");
+        medicollectorToMedisons.put("place_holder_bp_dia","bp_dia");
+        medicollectorToMedisons.put("place_holder_temperature","temperature");
+        medicollectorToMedisons.put("place_holder_resp_rate","resp_rate");
     }
 
     /**
