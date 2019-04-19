@@ -14,9 +14,17 @@ storing aggregated score data and patient background data (patient demographic i
 3. Run the following command (-data param optional, defaults to 'resources'):
     - Static files:
         > `./gradlew runSimulator --args='-data <files path>'`
+        
+        or with default data dir:
+        
+        > `./gradlew runSimulator`
     
     - Live files:
         > `./gradlew runSimulator --args='-data <files path> -live'`
+    
+        or with default data dir:
+    
+        > `./gradlew runSimulator --args='-live'`
 
 ## Running the DCS
 
@@ -63,5 +71,5 @@ VitalSignsCapture application. Run VitalSignsCapture first with sensors connecte
 
 2. Run the DCS on the same machine as the VitalSignsCapture application.
 
-3. Run the Simulator with live files and specify the [files path] to be the directory that the VitalSignsCapture app 
-runs in.
+3. Run the Simulator with the `-live` option and specify the `-data <files path>` option to be the directory that the
+VitalSignsCapture app runs in.

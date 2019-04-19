@@ -29,8 +29,8 @@ allprojects {
     }
 
     task runSimulator(type: JavaExec) {
-        main = 'com.medisons.simulator.SensorSimulator'
         classpath = sourceSets.main.runtimeClasspath
+        main = 'com.medisons.simulator.SensorSimulator'
     }
 
     dependencies {
