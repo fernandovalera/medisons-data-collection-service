@@ -3,20 +3,20 @@ package com.medisons.dcs;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 
 class DataDistributorTest {
@@ -31,6 +31,9 @@ class DataDistributorTest {
 
     @Mock
     HttpClient httpClientMock;
+
+    @Mock
+    HttpResponse<String> httpResponseMock;
 
     private DataDistributor dataDistributor = null;
 
@@ -52,8 +55,19 @@ class DataDistributorTest {
     }
 
     @Test
-    void storeDataPoints_givenValidSignalData_returnZero() {
+    void storeDataPoints_givenValidSignalData_returnZero() throws IOException, InterruptedException {
+        Mockito.when(httpClientMock.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenReturn(httpResponseMock);
+        Mockito.when(httpResponseMock.statusCode()).thenReturn(200);
         assertEquals(0, dataDistributor.storeSignalData(signalDataMock));
+    }
+
+    @Test
+    void storeDataPoints_givenBadRequest_returnBadRequest() throws IOException, InterruptedException {
+        Mockito.when(httpClientMock.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenReturn(httpResponseMock);
+        Mockito.when(httpResponseMock.statusCode()).thenReturn(400);
+        assertEquals(400, dataDistributor.storeSignalData(signalDataMock));
     }
 
     @Test
