@@ -11,18 +11,22 @@ The DBM makes patient data accessible to other services and is responsible for s
 2. Build the project.
 
 3. Run the following command:
-    > java -cp build/classes/java/main com.medisons.simulator.SensorSimulator
+    - Static files:
+        > java -cp build/classes/java/main com.medisons.simulator.SensorSimulator [files path]
+    
+    - Live files:
+        > java -Duser.timezone=Canada/Mountain -cp build/classes/java/main com.medisons.simulator.SensorSimulator [files path] live
 
 ## Running the DCS
 
 1. Navigate to the 'data-collection' directory.
 
 2. Run the following command based on your OS:
-Linux:
-    > `./gradlew run`
-
-Windows:
-    > `gradlew.bat run`
+    - Linux:
+        > `./gradlew run`
+    
+    - Windows:
+        > `gradlew.bat run`
 
 ## DBM Setup
 

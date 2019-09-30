@@ -21,6 +21,10 @@ public class HikariConnectionManager extends ConnectionManager {
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
+        // https://github.com/brettwooldridge/HikariCP/issues/1268
+        config.addDataSourceProperty("sslMode", "DISABLED");
+        config.addDataSourceProperty("allowPublicKeyRetrieval", "false");
+
         ds = new HikariDataSource(config);
     }
 
